@@ -1,4 +1,3 @@
-// src/components/WordDisplay.jsx
 import React from 'react';
 
 const WordDisplay = ({ word, onStartDrawing }) => {
