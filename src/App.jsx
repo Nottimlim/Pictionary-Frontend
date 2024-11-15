@@ -1,5 +1,6 @@
 import React from "react";
 import GameContainer from "../Game/GameContainer";
+import './index.css'
 
 const App = () => {
   return (
