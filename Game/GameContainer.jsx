@@ -1,78 +1,70 @@
-import React, { useState, useCallback } from "react";
-// import CanvasDrawing from "./Canvas/CanvasDrawing";
-import PredictionHandler from "./AIcomponents/PredictionHandler";
-import Result from "./AIcomponents/Result";
-import WordDisplay from "./WordDisplay";
-import Timer from "./Timer";
+import React, { useState, useCallback } from 'react';
+import CanvasDrawing from './Canvas/CanvasDrawing';
+import PredictionHandler from './AIComponents/PredictionHandler';
+import Result from './AIComponents/Result';
+import WordDisplay from './WordDisplay';
+import Timer from './Timer';
 
-// Constants
-const TIMER_DURATION = 20; // Game duration in seconds
+const TIMER_DURATION = 20; // 20 seconds
 
 const GameContainer = () => {
-  // =============== State Management ===============
-  // Drawing-related state
-  const [drawingMode] = useState("freedraw"); // Currently only using freedraw mode
+  // State for drawing settings
   const [strokeWidth, setStrokeWidth] = useState(3);
-  const [strokeColor, setStrokeColor] = useState("#000000");
-  const [bgColor, setBgColor] = useState("#eeeeee");
+  const [strokeColor, setStrokeColor] = useState('#000000');
+  const [bgColor, setBgColor] = useState('#ffffff');
+  
+  // Game state
+  const [selectedWord, setSelectedWord] = useState('');
+  const [imageData, setImageData] = useState(null);
+  const [gameState, setGameState] = useState('initial'); // initial, playing, timeUp
+  const [result, setResult] = useState(null);
 
-  // Game state management
-  const [selectedWord, setSelectedWord] = useState(""); // Word to be drawn
-  const [imageData, setImageData] = useState(null); // Canvas drawing data
-  const [gameState, setGameState] = useState("initial"); // Game states: 'initial', 'playing', 'timeUp'
-  const [result, setResult] = useState(null); // AI prediction result
-
-  // =============== Game Logic Functions ===============
-
-  // Generates a new word for the player to draw
+  // Generate a new word for the game
   const generateNewWord = async () => {
-    // TODO: Integrate with LLM API
-    setSelectedWord("Cat standing on a table");
+    // TODO: Replace with actual word generation logic
+    setSelectedWord('Cat standing on a table');
   };
 
-  // Handles the start of the drawing phase
+  // Game state handlers
   const handleStartDrawing = () => {
-    setGameState("playing");
+    setGameState('playing');
   };
 
-  // Callback for when timer reaches zero
   const handleTimeUp = () => {
-    setGameState("timeUp");
+    setGameState('timeUp');
   };
 
-  // Updates image data when canvas content changes
-  // useCallback prevents unnecessary re-renders
   const handleImageUpdate = useCallback((newImageData) => {
     setImageData(newImageData);
   }, []);
 
-  // Handles the AI prediction result
   const handlePredictionComplete = (predictionResult) => {
     setResult(predictionResult);
   };
 
-  // Resets the game state for a new round
   const handlePlayAgain = () => {
-    setGameState("initial");
+    setGameState('initial');
     setResult(null);
     setImageData(null);
     generateNewWord();
   };
 
-  // =============== Render Logic ===============
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Initial word display modal */}
-      {gameState === "initial" && (
-        <WordDisplay word={selectedWord} onStartDrawing={handleStartDrawing} />
+      {/* Word Display Modal */}
+      {gameState === 'initial' && (
+        <WordDisplay 
+          word={selectedWord}
+          onStartDrawing={handleStartDrawing}
+        />
       )}
 
-      {/* Main game interface */}
-      {gameState !== "initial" && (
+      {/* Main Game Interface */}
+      {gameState !== 'initial' && (
         <div className="max-w-4xl mx-auto">
-          {/* Timer and Word Display Section */}
+          {/* Timer and Current Word */}
           <div className="flex items-center justify-between mb-4">
-            <Timer
+            <Timer 
               duration={TIMER_DURATION}
               onTimeUp={handleTimeUp}
               gameState={gameState}
@@ -82,11 +74,10 @@ const GameContainer = () => {
             </div>
           </div>
 
-          {/* Drawing Controls Section */}
-          <div className="flex gap-4 mb-4 items-center">
-            {/* Stroke Width Control */}
+          {/* Drawing Controls */}
+          <div className="flex gap-4 mb-4 items-center p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Size:</span>
+              <span className="text-sm font-medium">Brush Size:</span>
               <input
                 type="range"
                 min="1"
@@ -95,58 +86,54 @@ const GameContainer = () => {
                 onChange={(e) => setStrokeWidth(Number(e.target.value))}
                 className="w-32"
               />
+              <span className="text-sm w-8">{strokeWidth}px</span>
             </div>
-
-            {/* Stroke Color Control */}
+            
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Color:</span>
               <input
                 type="color"
                 value={strokeColor}
                 onChange={(e) => setStrokeColor(e.target.value)}
-                className="w-8 h-8"
+                className="w-8 h-8 rounded"
               />
             </div>
-
-            {/* Background Color Control */}
+            
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Background:</span>
               <input
                 type="color"
                 value={bgColor}
                 onChange={(e) => setBgColor(e.target.value)}
-                className="w-8 h-8"
+                className="w-8 h-8 rounded"
               />
             </div>
           </div>
 
-          {/* Drawing Canvas */}
+          {/* Canvas */}
           <CanvasDrawing
-            drawingMode={drawingMode}
             strokeWidth={strokeWidth}
             strokeColor={strokeColor}
             bgColor={bgColor}
             onImageUpdate={handleImageUpdate}
-            disabled={gameState === "timeUp"}
+            disabled={gameState === 'timeUp'}
           />
 
           {/* Results Section */}
-          {gameState === "timeUp" && (
-            <div className="mt-4">
-              {/* AI Prediction Handler */}
+          {gameState === 'timeUp' && (
+            <div className="mt-4 space-y-4">
               <PredictionHandler
                 imageData={imageData}
                 selectedWord={selectedWord}
                 onPredictionComplete={handlePredictionComplete}
               />
-
-              {/* Display Results and Play Again Button */}
+              
               {result && (
                 <>
                   <Result {...result} />
                   <button
                     onClick={handlePlayAgain}
-                    className="mt-4 px-4 py-2 bg-green-500 text-white rounded
+                    className="px-4 py-2 bg-green-500 text-white rounded
                              hover:bg-green-600 transition-colors"
                   >
                     Play Again
