@@ -21,4 +21,17 @@
            active:shadow-[1px_1px_2px_rgba(0,0,0,0.3)] active:translate-y-[1px] 
            transition-all duration-100 rounded-none;
   }
+  .retroInput {
+    @apply w-full bg-white border border-atomic-tangerine p-2 
+             outline-none focus:border-atomic-tangerine-400
+             transition-colors duration-200;
+  }
+
+  .retroLabel {
+    @apply block text-eerie-black mb-1 font-medium;
+  }
+
+  .formGroup {
+    @apply space-y-4;
+  }
 }

@@ -30,7 +30,7 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   const handleStartGame = () => {
-    navigate('/game');
+    navigate('/login');
   };
 
   return (
