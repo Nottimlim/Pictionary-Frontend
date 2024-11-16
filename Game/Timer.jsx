@@ -24,22 +24,22 @@ const Timer = ({ duration, onTimeUp, gameState }) => {
   const seconds = timeLeft % 60;
 
   return (
-    <div className="mb-4">
+    <div className="flex-1">
       <div className="flex items-center gap-4">
-        <div className="text-xl font-mono">
+        <div className="text-xl font-mono text-eerie-black">
           {`${minutes.toString().padStart(2, "0")}:${seconds
             .toString()
             .padStart(2, "0")}`}
         </div>
-        <div className="flex-1 bg-gray-200 rounded-full h-2">
+        <div className="flex-1 bg-vanilla-300 h-4 border border-eerie-black-600">
           <div
-            className="bg-blue-600 h-2 rounded-full transition-all duration-1000"
+            className="bg-indian-red h-full transition-all duration-1000"
             style={{ width: `${(timeLeft / duration) * 100}%` }}
           />
         </div>
       </div>
       {timeLeft <= 0 && (
-        <div className="text-yellow-600 font-semibold mt-2">Time's up!</div>
+        <div className="text-indian-red-500 font-semibold mt-2">Time's up!</div>
       )}
     </div>
   );

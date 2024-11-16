@@ -1,23 +1,53 @@
 import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+import HomePage from "./HomePage";
 import GameContainer from "../Game/GameContainer";
-import './index.css'
+import "./index.css";
 
-const App = () => {
+const AppContent = () => {
+  const location = useLocation();
+
+  // Check if the current path is the homepage
+  const isHomePage = location.pathname === '/';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
+    <div className="min-h-screen bg-vanilla-500">
       <div className="px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-            WHATADUUDLE!!
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Draw the word and let AI guess what it is!
-          </p>
-        </div>
-        <GameContainer />
+        {!isHomePage && (
+          <div className="retroContainer mb-8">
+            <div className="retroHeader">
+              <h1 className="text-2xl font-bold">
+                WHATADUUDLE!!
+              </h1>
+            </div>
+            <div className="bg-white p-4">
+              <p className="text-eerie-black">
+                Draw the word and let AI guess what it is!
+              </p>
+            </div>
+          </div>
+        )}
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/game" element={<GameContainer />} />
+        </Routes>
       </div>
     </div>
   );
 };
+
+const App = () => {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+};
+
 
 export default App;
