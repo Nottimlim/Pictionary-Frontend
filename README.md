@@ -117,6 +117,7 @@ As a user (AAU):
 - Canvas drawing controls and responsive sizing implemented
 - Retro UI styling applied (90s Photoshop-inspired design)
 - Mock game setup and results handling in place
+- Authentication components created (Login/Register)
 - Game interface organized into distinct sections:
   - Game Status (timer and word display)
   - Drawing Tools
@@ -128,6 +129,9 @@ As a user (AAU):
 - User interface and game mechanics being prioritized
 
 ## Recent Updates
+- Implemented authentication flow with Login and Register components
+- Added route protection and navigation
+- Created custom form styling for authentication
 - Implemented retro-style UI components
 - Added responsive canvas container
 - Created game status display with timer and current word
@@ -138,6 +142,7 @@ As a user (AAU):
 - Styled components to match 90s software aesthetic
 - Organized game interface into logical sections
 - Added proper spacing and layout for game elements
+- Established consistent styling patterns using Tailwind CSS
 
 ## Design System
 ### UI Components
@@ -146,6 +151,8 @@ As a user (AAU):
 - Progress bar for timer
 - Organized tool panels
 - Modal-style results display
+- Form inputs with retro styling
+- Authentication forms with consistent design
 
 ### Color Palette
 - Using custom theme colors:
@@ -155,9 +162,19 @@ As a user (AAU):
   - Atomic Tangerine (borders and highlights)
   - Eerie Black (text and borders)
 
+### CSS Architecture
+- Utilizing Tailwind CSS with custom components
+- Established reusable classes for:
+  - Retro containers
+  - Form inputs
+  - Buttons
+  - Headers
+  - Layout components
+
 ## Next Steps
+- Complete authentication integration with backend
+- Add user session management
 - Finalize AI integration for drawing recognition
-- Set up authentication flow
 - Enhance game loop mechanics
 - Add user account features
 - Implement backend integration
@@ -165,3 +182,5 @@ As a user (AAU):
 - Expand word database
 - Add game history tracking
 - Implement user statistics
+- Add error handling and loading states
+- Implement protected routes
