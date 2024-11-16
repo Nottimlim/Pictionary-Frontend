@@ -114,15 +114,54 @@ As a user (AAU):
 
 ## Current Development Status
 - Basic drawing functionality implemented
+- Canvas drawing controls and responsive sizing implemented
+- Retro UI styling applied (90s Photoshop-inspired design)
 - Mock game setup and results handling in place
+- Game interface organized into distinct sections:
+  - Game Status (timer and word display)
+  - Drawing Tools
+  - Canvas
+  - Results Display
 - Frontend development in progress (Timothy)
 - AI component being handled by Norman
 - Backend implementation planned
 - User interface and game mechanics being prioritized
 
+## Recent Updates
+- Implemented retro-style UI components
+- Added responsive canvas container
+- Created game status display with timer and current word
+- Improved drawing tools organization
+- Added clear canvas functionality
+- Implemented mock result handling
+- Added play again functionality
+- Styled components to match 90s software aesthetic
+- Organized game interface into logical sections
+- Added proper spacing and layout for game elements
+
+## Design System
+### UI Components
+- Retro-style containers with headers
+- Classic button styling
+- Progress bar for timer
+- Organized tool panels
+- Modal-style results display
+
+### Color Palette
+- Using custom theme colors:
+  - Vanilla (background and containers)
+  - Flax (headers and accents)
+  - Indian Red (buttons and interactive elements)
+  - Atomic Tangerine (borders and highlights)
+  - Eerie Black (text and borders)
+
 ## Next Steps
 - Finalize AI integration for drawing recognition
 - Set up authentication flow
 - Enhance game loop mechanics
-- Develop results display
-- Style user interface
+- Add user account features
+- Implement backend integration
+- Add difficulty levels
+- Expand word database
+- Add game history tracking
+- Implement user statistics
