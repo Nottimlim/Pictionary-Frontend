@@ -113,15 +113,16 @@ As a user (AAU):
 4. Game Loop and AI Integration: Once drawing is working, integrate the AI components and finalize the game loop, including submitting drawings and receiving results.
 
 ## Current Development Status
+- Basic drawing functionality implemented
+- Mock game setup and results handling in place
 - Frontend development in progress (Timothy)
 - AI component being handled by Norman
 - Backend implementation planned
 - User interface and game mechanics being prioritized
 
 ## Next Steps
-- Implement basic drawing functionality
+- Finalize AI integration for drawing recognition
 - Set up authentication flow
-- Create game loop mechanics
-- Integrate timer functionality
+- Enhance game loop mechanics
 - Develop results display
 - Style user interface
