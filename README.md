@@ -101,7 +101,7 @@ As a user (AAU):
 1. User registers/logs in
 2. Views landing page with instructions
 3. Starts game and receives word prompt
-4. Has 20-40 seconds to complete drawing
+4. Has 20-60 seconds to complete drawing dependent on difficulty
 5. Submits drawing for AI recognition
 6. Receives win/lose result
 7. Option to play again
