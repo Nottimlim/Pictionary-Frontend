@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react';
+
 const Timer = ({ duration, onTimeUp, gameState }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
 
