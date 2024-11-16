@@ -106,16 +106,81 @@ As a user (AAU):
 6. Receives win/lose result
 7. Option to play again
 
+## Order of Implementation
+1. Drawing Functionality: As discussed, this is central to the app's purpose.
+2. Landing Page: This can be a simple component that explains the game and provides a start button to navigate to the drawing game.
+3. Authentication: Implementing user registration and login will allow for a more complete user experience and testing of user-specific features like game history.
+4. Game Loop and AI Integration: Once drawing is working, integrate the AI components and finalize the game loop, including submitting drawings and receiving results.
+
 ## Current Development Status
+- Basic drawing functionality implemented
+- Canvas drawing controls and responsive sizing implemented
+- Retro UI styling applied (90s Photoshop-inspired design)
+- Mock game setup and results handling in place
+- Authentication components created (Login/Register)
+- Game interface organized into distinct sections:
+  - Game Status (timer and word display)
+  - Drawing Tools
+  - Canvas
+  - Results Display
 - Frontend development in progress (Timothy)
 - AI component being handled by Norman
 - Backend implementation planned
 - User interface and game mechanics being prioritized
 
+## Recent Updates
+- Implemented authentication flow with Login and Register components
+- Added route protection and navigation
+- Created custom form styling for authentication
+- Implemented retro-style UI components
+- Added responsive canvas container
+- Created game status display with timer and current word
+- Improved drawing tools organization
+- Added clear canvas functionality
+- Implemented mock result handling
+- Added play again functionality
+- Styled components to match 90s software aesthetic
+- Organized game interface into logical sections
+- Added proper spacing and layout for game elements
+- Established consistent styling patterns using Tailwind CSS
+
+## Design System
+### UI Components
+- Retro-style containers with headers
+- Classic button styling
+- Progress bar for timer
+- Organized tool panels
+- Modal-style results display
+- Form inputs with retro styling
+- Authentication forms with consistent design
+
+### Color Palette
+- Using custom theme colors:
+  - Vanilla (background and containers)
+  - Flax (headers and accents)
+  - Indian Red (buttons and interactive elements)
+  - Atomic Tangerine (borders and highlights)
+  - Eerie Black (text and borders)
+
+### CSS Architecture
+- Utilizing Tailwind CSS with custom components
+- Established reusable classes for:
+  - Retro containers
+  - Form inputs
+  - Buttons
+  - Headers
+  - Layout components
+
 ## Next Steps
-- Implement basic drawing functionality
-- Set up authentication flow
-- Create game loop mechanics
-- Integrate timer functionality
-- Develop results display
-- Style user interface
+- Complete authentication integration with backend
+- Add user session management
+- Finalize AI integration for drawing recognition
+- Enhance game loop mechanics
+- Add user account features
+- Implement backend integration
+- Add difficulty levels
+- Expand word database
+- Add game history tracking
+- Implement user statistics
+- Add error handling and loading states
+- Implement protected routes

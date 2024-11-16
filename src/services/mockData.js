@@ -7,13 +7,13 @@ const mockUsers = [
       id: 1,
       username: "timlim",
       email: "timlim@gmail.com",
-      password: "hashedPassword123" // obvs gonna be actually hashed in real backend
+      password: "hashed_hashedPassword123" // obvs gonna be actually hashed in real backend
     },
     {
       id: 2,
       username: "norman",
       email: "norman@gmail.com",
-      password: "123456"
+      password: "hashed_123456"
     }
   ];
   
