@@ -106,6 +106,12 @@ As a user (AAU):
 6. Receives win/lose result
 7. Option to play again
 
+## Order of Implementation
+1. Drawing Functionality: As discussed, this is central to the app's purpose.
+2. Landing Page: This can be a simple component that explains the game and provides a start button to navigate to the drawing game.
+3. Authentication: Implementing user registration and login will allow for a more complete user experience and testing of user-specific features like game history.
+4. Game Loop and AI Integration: Once drawing is working, integrate the AI components and finalize the game loop, including submitting drawings and receiving results.
+
 ## Current Development Status
 - Frontend development in progress (Timothy)
 - AI component being handled by Norman

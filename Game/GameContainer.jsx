@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import CanvasDrawing from './Canvas/CanvasDrawing';
+import CanvasControls from './Canvas/CanvasControls';
 import PredictionHandler from './AIComponents/PredictionHandler';
 import Result from './AIComponents/Result';
 import WordDisplay from './WordDisplay';
@@ -18,6 +19,9 @@ const GameContainer = () => {
   const [imageData, setImageData] = useState(null);
   const [gameState, setGameState] = useState('initial'); // initial, playing, timeUp
   const [result, setResult] = useState(null);
+
+  // ref to access the canvas methods - TL 
+  const canvasRef = useRef(null);
 
   // Generate a new word for the game
   const generateNewWord = async () => {
@@ -73,6 +77,9 @@ const GameContainer = () => {
               Draw: {selectedWord}
             </div>
           </div>
+
+          {/* canvas controls - TL */}
+          <CanvasControls onClearCanvas={() => canvasRef.current.clearCanvas()} />
 
           {/* Drawing Controls */}
           <div className="flex gap-4 mb-4 items-center p-4 bg-gray-50 rounded-lg">
