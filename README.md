@@ -120,19 +120,33 @@ As a user (AAU):
 - Authentication components created (Login/Register)
 - Game interface organized into distinct sections:
   - Game Status (timer and word display)
-  - Drawing Tools (retro-styled toolbar)
+  - Drawing Tools (compact retro-styled toolbar)
   - Canvas with improved scaling
   - Results Display
-- Implemented retro-inspired toolbar design
+  - AI Predictions panel with overflow handling
+- Implemented retro-inspired toolbar design with fixed sizing
 - Enhanced canvas drawing experience
 - Added proper game state cycling
 - Improved modal system for game flow
+- Fixed panel sizing inconsistencies
 - Frontend development in progress (Timothy)
 - AI component being handled by Norman
 - Backend implementation planned
 - User interface and game mechanics being prioritized
 
 ## Recent Updates
+- Fixed toolbar sizing consistency across all game states
+- Improved right panel structure with proper overflow handling
+- Added static dimensions to prevent content-based resizing
+- Optimized toolbar and icon sizes to match classic software design
+- Enhanced modal positioning and overlay behavior
+- Implemented proper scroll handling for AI predictions
+- Added fixed-width constraints for consistent panel sizing
+- Improved responsive layout stability
+- Enhanced game interface organization
+- Fixed modal centering and overlay behavior
+- Added proper text overflow handling in AI panel
+- Implemented consistent sizing across all game states
 - Implemented authentication flow with Login and Register components
 - Added route protection and navigation
 - Created custom form styling for authentication
@@ -157,14 +171,14 @@ As a user (AAU):
 
 ## Design System
 ### UI Components
-- Retro-style containers with headers
+- Retro-style containers with headers and fixed dimensions
 - Classic button styling
 - Progress bar for timer
-- Organized tool panels
-- Modal-style results display
+- Compact tool panels with consistent sizing
+- Modal-style results display with proper centering
 - Form inputs with retro styling
 - Authentication forms with consistent design
-
+- Fixed-width panels with overflow handling
 ### Color Palette
 - Using custom theme colors:
   - Vanilla (background and containers)
