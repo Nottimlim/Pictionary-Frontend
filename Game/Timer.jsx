@@ -4,6 +4,12 @@ const Timer = ({ duration, onTimeUp, gameState }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
 
   useEffect(() => {
+    if (gameState === "initial") {
+      setTimeLeft(duration);
+    }
+  }, [gameState, duration]);
+
+  useEffect(() => {
     if (gameState !== "playing" || timeLeft <= 0) return;
 
     const timer = setInterval(() => {
@@ -24,10 +30,10 @@ const Timer = ({ duration, onTimeUp, gameState }) => {
   const seconds = timeLeft % 60;
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 px-4">
       <div className="flex items-center gap-4">
         <div className="text-xl font-mono text-eerie-black">
-          {`${minutes.toString().padStart(2, "0")}:${seconds
+           Time Remaining: {`${minutes.toString().padStart(2, "0")}:${seconds
             .toString()
             .padStart(2, "0")}`}
         </div>
@@ -39,7 +45,7 @@ const Timer = ({ duration, onTimeUp, gameState }) => {
         </div>
       </div>
       {timeLeft <= 0 && (
-        <div className="text-indian-red-500 font-semibold mt-2">Time's up!</div>
+        <div className="text-indian-red-500 font-semibold mt-2 ml-1">Time's up!</div>
       )}
     </div>
   );

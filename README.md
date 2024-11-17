@@ -120,9 +120,13 @@ As a user (AAU):
 - Authentication components created (Login/Register)
 - Game interface organized into distinct sections:
   - Game Status (timer and word display)
-  - Drawing Tools
-  - Canvas
+  - Drawing Tools (retro-styled toolbar)
+  - Canvas with improved scaling
   - Results Display
+- Implemented retro-inspired toolbar design
+- Enhanced canvas drawing experience
+- Added proper game state cycling
+- Improved modal system for game flow
 - Frontend development in progress (Timothy)
 - AI component being handled by Norman
 - Backend implementation planned
@@ -135,10 +139,17 @@ As a user (AAU):
 - Implemented retro-style UI components
 - Added responsive canvas container
 - Created game status display with timer and current word
-- Improved drawing tools organization
-- Added clear canvas functionality
-- Implemented mock result handling
-- Added play again functionality
+- Implemented retro-style toolbar with iconic 90s design
+- Added classic-style drawing tools (eraser and color picker)
+- Integrated retro-styled slider for brush size control
+- Enhanced canvas sizing for better drawing experience
+- Improved modal positioning and overlay behavior
+- Updated timer display with integrated time remaining
+- Added clean game reset functionality
+- Implemented proper game state management
+- Enhanced UI responsiveness for drawing tools
+- Improved canvas container scaling
+- Updated game flow with proper word cycling
 - Styled components to match 90s software aesthetic
 - Organized game interface into logical sections
 - Added proper spacing and layout for game elements
