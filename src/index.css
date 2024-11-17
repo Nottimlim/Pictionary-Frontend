@@ -34,4 +34,34 @@
   .formGroup {
     @apply space-y-4;
   }
+  .retroRange {
+    @apply w-full h-8 appearance-none bg-vanilla-300 rounded-none 
+           border-2 border-eerie-black cursor-pointer relative;
+  }
+
+  .retroRange::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    @apply w-6 h-6 bg-indian-red 
+           border-2 border-eerie-black relative -mt-2
+           hover:bg-indian-red-400 active:translate-y-[1px];
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .retroRange::-webkit-slider-runnable-track {
+    @apply h-3 bg-white border border-eerie-black;
+    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Firefox */
+  .retroRange::-moz-range-thumb {
+    @apply w-6 h-6 bg-indian-red 
+           border-2 border-eerie-black
+           hover:bg-indian-red-400;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .retroRange::-moz-range-track {
+    @apply h-3 bg-white border border-eerie-black;
+    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.2);
+  }
 }

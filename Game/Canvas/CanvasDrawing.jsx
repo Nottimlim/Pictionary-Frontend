@@ -3,36 +3,58 @@ import React, {
   useState,
   useImperativeHandle,
   forwardRef,
+  useEffect
 } from "react";
 
 const CanvasDrawing = forwardRef(
-  ({ strokeWidth, strokeColor, bgColor, disabled }, ref) => {
+  ({ strokeWidth, strokeColor, disabled }, ref) => {
     const canvasRef = useRef(null); // this is our canvas element
     const contextRef = useRef(null); // this is where we'll be drawing
     const [isDrawing, setIsDrawing] = useState(false); // are we currently drawing?
+    const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
     // set up the canvas when the component loads
     const prepareCanvas = () => {
       const canvas = canvasRef.current;
       const container = canvas.parentElement;
 
-      canvas.width = container.clientWidth - 32; // subtract padding (16px * 2)
-      canvas.height = 400; // fixed height or you can make this dynamic too
+      const rect = container.getBoundingClientRect();
 
+      const width = rect.width * 2.05;
+      const height = rect.height * 2.05;
+
+      // update state for resize handling
+      setCanvasSize({ width, height });
+
+      // set canvas dimensions with device pixel ratio
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+
+      // scale canvas back down with CSS
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      // set up drawing context
       const context = canvas.getContext("2d");
-      context.lineCap = "round"; // make the lines smooth and round at the ends
-      context.lineWidth = strokeWidth; // set the initial brush size
-      context.strokeStyle = strokeColor; // set the initial brush color
-      context.fillStyle = bgColor; // set the background color
-      context.fillRect(0, 0, canvas.width, canvas.height); // fill the canvas with the background color
+      context.scale(dpr, dpr);
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      context.lineWidth = strokeWidth;
+      context.strokeStyle = strokeColor;
+
+      // set white background
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+
       contextRef.current = context;
     };
 
     // update the drawing context when color or brush size changes
     const updateDrawingContext = () => {
-      const context = contextRef.current;
-      context.strokeStyle = strokeColor; // update the brush color
-      context.lineWidth = strokeWidth; // update the brush size
+        if (!contextRef.current) return;
+        contextRef.current.lineWidth = strokeWidth; // update the brush color
+        contextRef.current.strokeStyle = strokeColor; // update the brush size
     };
 
     // start drawing when the mouse is pressed down
@@ -47,28 +69,30 @@ const CanvasDrawing = forwardRef(
     // draw lines as the mouse moves
     const draw = ({ nativeEvent }) => {
       if (!isDrawing) return; // if we're not drawing, do nothing
-      const { offsetX, offsetY } = nativeEvent;
+
+      const { offsetX, offsetY } = nativeEvent; // get mouse position
       contextRef.current.lineTo(offsetX, offsetY); // draw a line to this point
       contextRef.current.stroke(); // actually draw the line
     };
 
     // stop drawing when the mouse is released
     const stopDrawing = () => {
+      if (!isDrawing) return; // if we're not drawing, do nothing
       contextRef.current.closePath(); // finish the current path
       setIsDrawing(false); // we're done drawing
     };
 
     // clear the canvas
     const clearCanvas = () => {
-      const canvas = canvasRef.current;
-      if (contextRef.current) {
-        contextRef.current.clearRect(0, 0, canvas.width, canvas.height);
-        contextRef.current.fillRect(0, 0, canvas.width, canvas.height); // fill with background color
-      }
+      const context = contextRef.current;
+      if(!context) return;
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvasSize.width, canvasSize.height);
     };
 
     useImperativeHandle(ref, () => ({
       clearCanvas, // expose the clearCanvas function to the parent component
+      // add functions for getimagedata here
     }));
 
     // handle window resize
@@ -82,28 +106,32 @@ const CanvasDrawing = forwardRef(
     }, []);
 
     // run once when the component mounts to set up the canvas
-    React.useEffect(() => {
+    useEffect(() => {
       prepareCanvas();
     }, []);
 
     // update the drawing context whenever brush color or size changes
-    React.useEffect(() => {
+    useEffect(() => {
       updateDrawingContext();
     }, [strokeColor, strokeWidth]);
 
     return (
-      <div className="w-full flex justify-center">
-        <canvas
-          ref={canvasRef}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-          className="border border-eerie-black-300" // just a simple border for visibility
-        />
-      </div>
+        <div className="w-full h-full">
+          <canvas
+            ref={canvasRef}
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+            className="w-full h-full bg-white cursor-crosshair"
+            style={{
+              touchAction: "none",
+            }}
+          />
+        </div>
     );
   }
 );
+CanvasDrawing.displayName = "CanvasDrawing";
 
 export default CanvasDrawing;
