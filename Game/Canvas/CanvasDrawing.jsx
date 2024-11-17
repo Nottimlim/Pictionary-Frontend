@@ -7,12 +7,24 @@ import React, {
 } from "react";
 
 const CanvasDrawing = forwardRef(
-  ({ strokeWidth, strokeColor, disabled }, ref) => {
+  ({ strokeWidth, strokeColor, disabled, onImageUpdate }, ref) => {
     const canvasRef = useRef(null); // this is our canvas element
     const contextRef = useRef(null); // this is where we'll be drawing
     const [isDrawing, setIsDrawing] = useState(false); // are we currently drawing?
     const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
+        // capture and send canvas data to parent component
+        const updateImageData = () => {
+            if (canvasRef.current && onImageUpdate) {
+              try {
+                const imageData = canvasRef.current.toDataURL('image/png');
+                onImageUpdate(imageData);
+              } catch (error) {
+                console.error('Error getting canvas data:', error);
+              }
+            }
+          };
+      
     // set up the canvas when the component loads
     const prepareCanvas = () => {
       const canvas = canvasRef.current;
@@ -92,13 +104,14 @@ const CanvasDrawing = forwardRef(
 
     useImperativeHandle(ref, () => ({
       clearCanvas, // expose the clearCanvas function to the parent component
-      // add functions for getimagedata here
+      getImageData: () => canvasRef.current?.toDataURL('image/png') // function to get canvas data
     }));
 
     // handle window resize
     React.useEffect(() => {
       const handleResize = () => {
         prepareCanvas();
+        updateImageData();
       };
 
       window.addEventListener("resize", handleResize);

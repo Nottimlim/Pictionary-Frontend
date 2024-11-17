@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import CanvasDrawing from "./Canvas/CanvasDrawing";
-import CanvasControls from "./Canvas/CanvasControls";
-// import PredictionHandler from './AIComponents/PredictionHandler'; greying out for mockdata purposes
-// import Result from './AIComponents/Result'; greying out for mockdata purposes
-import mockAPI from "../src/services/mockData";
-import WordDisplay from "./WordDisplay";
-import Timer from "./Timer";
+import CanvasDrawing from "./Canvas/CanvasDrawing.jsx";
+import CanvasControls from "./Canvas/CanvasControls.jsx";
+import PredictionHandler from "./AIComponents/PredictionHandler.jsx";
+import Result from "./AIComponents/Result.jsx";
+import Timer from "./Timer.jsx";
+import { generateWord } from "../src/services/wordGeneration.js";
+import mockAPI from "../src/services/mockData.js";
 
-const TIMER_DURATION = 20; // 20 seconds
+const TIMER_DURATION = 20;
 
 const GameContainer = () => {
   // State for drawing settings
@@ -16,129 +16,146 @@ const GameContainer = () => {
 
   // Game state
   const [selectedWord, setSelectedWord] = useState("");
-  const [gameState, setGameState] = useState("initial"); // initial, playing, timeUp
+  const [gameState, setGameState] = useState("initial");
   const [result, setResult] = useState(null);
-  const [gameId, setGameId] = useState(null); // store game ID
-  // const [imageData, setImageData] = useState(null); // store drawing data
+  const [gameId, setGameId] = useState(null);
+  const [imageData, setImageData] = useState(null);
 
-  // ref to access the canvas methods - TL
   const canvasRef = useRef(null);
 
-  // fetch a random word when the component mounts - TL
+  // Initialize game with AI word and session
   useEffect(() => {
     const initializeGame = async () => {
-      const word = await mockAPI.getRandomWord();
-      setSelectedWord(word.prompt);
+      try {
+        // Get AI-generated word
+        const word = await generateWord("EASY");
+        setSelectedWord(word);
 
-      const newGame = await mockAPI.createGame(1, "Easy"); // assuming user ID 1
-      setGameId(newGame.game.id); // store game ID
+        // Create game session
+        const newGame = await mockAPI.createGame(1, "Easy", word);
+        setGameId(newGame.game.id);
+      } catch (err) {
+        console.error("Error initializing game:", err);
+        // Use fallback word if AI generation fails
+        const word = await mockAPI.getRandomWord();
+        setSelectedWord(word.prompt);
+        const newGame = await mockAPI.createGame(1, "Easy");
+        setGameId(newGame.game.id);
+      }
     };
+
     initializeGame();
   }, []);
 
-  // Game state handlers
   const handleStartDrawing = () => {
     setGameState("playing");
   };
 
   const handleTimeUp = useCallback(async () => {
     setGameState("timeUp");
-    if (gameId) {
-      const mockDrawingData = {}; // replace with actual drawing data once available
+    if (gameId && imageData) {
       try {
-        const gameResult = await mockAPI.submitDrawing(gameId, mockDrawingData);
+        const gameResult = await mockAPI.submitDrawing(gameId, imageData);
         setResult(gameResult.isCorrect ? { winner: true } : { winner: false });
       } catch (error) {
         console.error("Error submitting drawing:", error);
-        // Simulate a random result for development purposes
-        const randomResult = Math.random() > 0.5; // randomly win or lose
+        // Fallback random result
+        const randomResult = Math.random() > 0.5;
         setResult(randomResult ? { winner: true } : { winner: false });
       }
     }
-  }, [gameId]);
+  }, [gameId, imageData]);
 
-  // const handleImageUpdate = useCallback((newImageData) => {
-  //   setImageData(newImageData);
-  // }, []);
+  const handleImageUpdate = useCallback((newImageData) => {
+    setImageData(newImageData);
+  }, []);
 
-  // const handlePredictionComplete = (predictionResult) => {
-  //   setResult(predictionResult);
-  // };
+  const handlePredictionComplete = (predictionResult) => {
+    setResult(predictionResult);
+  };
 
   const handlePlayAgain = async () => {
     try {
       // Get new word and create new game
-      const newGame = await mockAPI.createGame(1, "Easy");
+      const word = await generateWord("EASY");
+      const newGame = await mockAPI.createGame(1, "Easy", word);
 
-      setSelectedWord(newGame.game.prompt); // reset word
-      setGameId(newGame.game.id); // reset game ID
+      setSelectedWord(word);
+      setGameId(newGame.game.id);
       setGameState("initial");
       setResult(null);
-      canvasRef.current.clearCanvas(); //clear the canvas
+      setImageData(null);
+      canvasRef.current.clearCanvas();
     } catch (error) {
       console.error("Error starting new game:", error);
+      // Fallback to mock data if AI fails
+      const word = await mockAPI.getRandomWord();
+      const newGame = await mockAPI.createGame(1, "Easy");
+      setSelectedWord(word.prompt);
+      setGameId(newGame.game.id);
     }
   };
 
   return (
     <div className="fixed inset-0 flex h-screen">
       {/* Left Toolbar */}
-      <div className="retroContainer w-16 flex flex-col h-full rounded-none">
-      <div className="retroHeader text-center">
-          <span className="text-xs font-bold">Tools</span>
+      <div className="retroContainer w-8 flex flex-col h-full rounded-none min-w-[2rem] max-w-[2rem] flex-shrink-0">
+        {" "}
+        {/* Added flex-shrink-0 */}
+        <div className="retroHeader text-center">
+          <span className="text-[8px] font-bold">Tools</span>
         </div>
-
-        <div className="flex flex-col gap-4 p-2">
+        <div className="flex flex-col gap-1 p-0.5">
           {/* Clear/Eraser Button */}
           <div className="flex flex-col items-center">
             <button
               onClick={() => canvasRef.current.clearCanvas()}
-              className="w-6 h-6 flex items-center justify-center hover:bg-atomic-tangerine-200 active:bg-atomic-tangerine-300 border border-eerie-black-300 p-0.5" 
+              className="w-3 h-3 flex items-center justify-center hover:bg-atomic-tangerine-200 active:bg-atomic-tangerine-300 border border-eerie-black-300"
             >
-              <div className="w-4 h-4 flex items-center justify-center">
-                <img
-                  src="../src/image/clear.png"
-                  alt="Clear Canvas"
-                  className="max-w-full max-h-full w-auto h-auto"
-                />
-              </div>
+              <img
+                src="../src/image/clear.png"
+                alt="Clear Canvas"
+                className="w-1.5 h-1.5"
+              />
             </button>
           </div>
 
           {/* Color Picker */}
           <div className="flex flex-col items-center">
-            <div className="relative w-6 h-6">
-              {" "}
-              {/* Container size */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center">
-                <img
-                  src="../src/image/color.png"
-                  alt="Color"
-                  className="max-w-full max-h-full w-auto h-auto"
-                />
-              </div>
+            <div className="relative w-3 h-3 overflow-hidden">
+              <img
+                src="../src/image/color.png"
+                alt="Color"
+                className="w-1.5 h-1.5 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+              />
               <input
                 type="color"
                 value={strokeColor}
                 onChange={(e) => setStrokeColor(e.target.value)}
-                className="w-full h-full opacity-0 cursor-pointer"
+                className="w-full h-full opacity-0 cursor-pointer absolute top-0 left-0"
               />
             </div>
           </div>
 
           {/* Brush size */}
-          <div className="space-y-1">
-            <div className="text-xs text-center mb-2 text-eerie-black">
+          <div className="space-y-0.5">
+            <div className="text-[6px] text-center mb-0.5 text-eerie-black">
               Size: {strokeWidth}
             </div>
-            <input
-              type="range"
-              min="1"
-              max="20"
-              value={strokeWidth}
-              onChange={(e) => setStrokeWidth(Number(e.target.value))}
-              className="retroRange"
-            />
+            <div className="w-6 mx-auto">
+              <input
+                type="range"
+                min="1"
+                max="20"
+                value={strokeWidth}
+                onChange={(e) => setStrokeWidth(Number(e.target.value))}
+                className="retroRange h-1 appearance-none"
+                style={{
+                  width: "2rem",
+                  transform: "scale(0.8)",
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -169,24 +186,39 @@ const GameContainer = () => {
               strokeWidth={strokeWidth}
               strokeColor={strokeColor}
               disabled={gameState === "timeUp"}
+              onImageUpdate={handleImageUpdate}
             />
           </div>
         </div>
       </div>
 
       {/* Right Panel */}
-      <div className="retroContainer w-64 h-full rounded-none">
+      <div className="retroContainer w-64 h-full rounded-none min-w-[16rem] max-w-[16rem] flex-shrink-0">
         <div className="retroHeader">
           <span className="font-bold">AI Guesses</span>
         </div>
-        <div className="p-4">
-          <p className="text-sm text-eerie-black-600">
-            AI predictions will appear here...
-          </p>
+        <div className="p-4 overflow-hidden h-[calc(100%-2rem)]">
+          <div className="w-full h-full overflow-y-auto">
+            {gameState === "playing" ? (
+              <p className="text-sm text-eerie-black-600 break-words">
+                Draw your word and the AI will try to guess it...
+              </p>
+            ) : gameState === "timeUp" ? (
+              <PredictionHandler
+                imageData={imageData}
+                selectedWord={selectedWord}
+                onPredictionComplete={handlePredictionComplete}
+              />
+            ) : (
+              <p className="text-sm text-eerie-black-600 break-words">
+                Draw your word and the AI will try to guess it...
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Word Prompt Modal*/}
+      {/* Word Prompt Modal */}
       {gameState === "initial" && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-eerie-black-500 bg-opacity-50 z-50 overflow-hidden"
