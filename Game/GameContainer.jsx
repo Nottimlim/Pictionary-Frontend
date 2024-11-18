@@ -10,8 +10,12 @@ import mockAPI from "../src/services/mockData.js";
 const TIMER_DURATION = 20;
 
 const GameContainer = () => {
+  // Loading and error states
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   // State for drawing settings
-  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [strokeWidth, setStrokeWidth] = useState(20);
   const [strokeColor, setStrokeColor] = useState("#000000");
 
   // Game state
@@ -27,20 +31,25 @@ const GameContainer = () => {
   useEffect(() => {
     const initializeGame = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+
         // Get AI-generated word
         const word = await generateWord("EASY");
-        setSelectedWord(word);
+        setSelectedWord(word); // word is an object with prompt and difficulty
 
         // Create game session
-        const newGame = await mockAPI.createGame(1, "Easy", word);
+        const newGame = await mockAPI.createGame(1, "EASY", word?.prompt);
         setGameId(newGame.game.id);
       } catch (err) {
         console.error("Error initializing game:", err);
         // Use fallback word if AI generation fails
         const word = await mockAPI.getRandomWord();
-        setSelectedWord(word.prompt);
-        const newGame = await mockAPI.createGame(1, "Easy");
+        setSelectedWord(word);
+        const newGame = await mockAPI.createGame(1, "EASY");
         setGameId(newGame.game.id);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -52,7 +61,22 @@ const GameContainer = () => {
   };
 
   const handleTimeUp = useCallback(() => {
-    setGameState("timeUp");
+    console.log("Time up called"); // Debug log
+    setGameState((prevState) => {
+      if (prevState === "playing") {
+        // Simulate a mock result immediately for testing
+        // You can remove this later when AI prediction is working
+        setTimeout(() => {
+          const mockResult = {
+            winner: Math.random() > 0.5,
+            // Add other properties as needed
+          };
+          setResult(mockResult);
+        }, 1000);
+        return "timeUp";
+      }
+      return prevState;
+    });
   }, []);
 
   const handleImageUpdate = useCallback((newImageData) => {
@@ -60,37 +84,83 @@ const GameContainer = () => {
   }, []);
 
   const handlePredictionComplete = (predictionResult) => {
+    console.log("Prediction complete:", predictionResult); // Debug log
     setResult(predictionResult);
   };
 
   const handlePlayAgain = async () => {
     try {
+      setIsLoading(true);
+      setError(null);
+      setResult(null);  // Clear result first
+      setGameState("initial");  // Reset game state
+      setImageData(null);  // Clear image data
+  
       // Get new word and create new game
       const word = await generateWord("EASY");
-      const newGame = await mockAPI.createGame(1, "Easy", word);
-
+      const newGame = await mockAPI.createGame(1, "EASY", word?.prompt);
+  
       setSelectedWord(word);
       setGameId(newGame.game.id);
-      setGameState("initial");
-      setResult(null);
-      setImageData(null);
-      canvasRef.current.clearCanvas();
+  
+      // Clear canvas after all states are reset and new game is created
+      if (canvasRef.current) {
+        canvasRef.current.clearCanvas();
+      }
+  
     } catch (error) {
       console.error("Error starting new game:", error);
+      setError("Failed to start new game. Please try again.");
+      
       // Fallback to mock data if AI fails
-      const word = await mockAPI.getRandomWord();
-      const newGame = await mockAPI.createGame(1, "Easy");
-      setSelectedWord(word.prompt);
-      setGameId(newGame.game.id);
+      try {
+        const word = await mockAPI.getRandomWord();
+        const newGame = await mockAPI.createGame(1, "EASY");
+        setSelectedWord(word);
+        setGameId(newGame.game.id);
+      } catch (fallbackError) {
+        console.error("Fallback error:", fallbackError);
+        setError("Unable to start game. Please refresh the page.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
+  
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indian-red-500 border-r-transparent"></div>
+          <p className="mt-4 text-eerie-black-600">Loading game...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white">
+        <div className="retroContainer w-96 text-center">
+          <div className="retroHeader">
+            <h2 className="text-lg font-bold">Error</h2>
+          </div>
+          <div className="bg-white p-8">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button onClick={handlePlayAgain} className="retroButton">
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex h-screen overflow-hidden">
       {/* Left Toolbar */}
       <div className="retroContainer w-8 flex flex-col h-full rounded-none min-w-[2rem] max-w-[2rem] flex-shrink-0">
-        {" "}
-        {/* Added flex-shrink-0 */}
         <div className="retroHeader text-center">
           <span className="text-[8px] font-bold">Tools</span>
         </div>
@@ -151,13 +221,11 @@ const GameContainer = () => {
 
       {/* Main Canvas Area */}
       <div className="flex-1 flex flex-col h-full p-4 overflow-hidden">
-        {" "}
-        {/* Added overflow-hidden */}
         {/* Timer Bar */}
         <div className="retroContainer mb-4 rounded-none">
           <div className="retroHeader">
             <div className="flex justify-between items-center">
-              <span className="font-bold">Word: {selectedWord}</span>
+              <span className="font-bold">Word: {selectedWord?.prompt}</span>
             </div>
           </div>
           <div className="p-2">
@@ -170,8 +238,8 @@ const GameContainer = () => {
         </div>
         {/* Canvas Container */}
         <div className="retroContainer flex-1 rounded-none overflow-hidden">
-        <div className="h-full w-full p-2 overflow-hidden">
-        <CanvasDrawing
+          <div className="h-full w-full p-2 overflow-hidden">
+            <CanvasDrawing
               ref={canvasRef}
               strokeWidth={strokeWidth}
               strokeColor={strokeColor}
@@ -191,11 +259,9 @@ const GameContainer = () => {
           <div className="w-full h-full overflow-y-auto flex flex-col">
             {gameState === "playing" ? (
               <>
-                {/* Helper text during gameplay */}
                 <p className="text-sm text-eerie-black-600 break-words mb-4">
                   Draw your word and the AI will try to guess it...
                 </p>
-                {/* Early submission button*/}
                 <button
                   onClick={handleTimeUp}
                   className="retroButton mt-auto hover:bg-indian-red-400"
@@ -204,14 +270,20 @@ const GameContainer = () => {
                 </button>
               </>
             ) : gameState === "timeUp" ? (
-              // Shows prediction handler after submission or time up
-              <PredictionHandler
-                imageData={imageData}
-                selectedWord={selectedWord}
-                onPredictionComplete={handlePredictionComplete}
-              />
-            ) : (
-              // Default state message
+              <>
+                <PredictionHandler
+                  imageData={imageData}
+                  selectedWord={selectedWord?.prompt}
+                  onPredictionComplete={handlePredictionComplete}
+                />
+                {/* Optional loading state while waiting for prediction */}
+                {!result && (
+                  <div className="text-center mt-4">
+                    <p>Analyzing your drawing...</p>
+                  </div>
+                )}
+              </>
+            ) : (            
               <p className="text-sm text-eerie-black-600 break-words">
                 Draw your word and the AI will try to guess it...
               </p>
@@ -232,7 +304,7 @@ const GameContainer = () => {
             </div>
             <div className="bg-white p-8 text-center">
               <h2 className="text-3xl font-bold text-eerie-black mb-6">
-                Draw: {selectedWord}
+                Draw: {selectedWord?.prompt}
               </h2>
               <button
                 onClick={handleStartDrawing}
