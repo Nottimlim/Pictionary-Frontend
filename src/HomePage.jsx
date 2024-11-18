@@ -54,14 +54,14 @@ const HomePage = () => {
     <>
       <Navbar
         containerClassName="bg-atomic-tangerine-500 text-white py-1 "
-        brandName="whataduudle Game"
+        brandName=" WHATADUUDLE GAME!"
       />
       <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-vanilla-500">
         <div className="w-full max-w-4xl retroContainer">
           <div className="retroHeader">
             <h2 className="text-lg font-bold">How To Play</h2>
           </div>
-
+    
           <div className="bg-white p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {instructionSteps.map(({ step, title, description }) => (

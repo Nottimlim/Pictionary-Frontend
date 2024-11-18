@@ -33,7 +33,7 @@ const Login = ({ setShowLogin }) => {
 
   return (
     <div className="flex justify-center items-center">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md" id="login">
         <div className="retroContainer">
           <div className="retroHeader">
             <h2 className="text-lg font-bold">Login</h2>
