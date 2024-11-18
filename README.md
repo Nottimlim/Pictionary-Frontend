@@ -82,6 +82,16 @@ As a user (AAU):
 - id (Integer, PK)
 - game_id (FK)
 - art (JSON)
+  ```json
+  {
+    "imageData": "data:image/png;base64,...",
+    "metadata": {
+      "format": "png",
+      "size": "129682",
+      "word": "computer",
+      "difficulty": "EASY"
+    }
+  }
 
 ## API Routes
 ### Game Routes
