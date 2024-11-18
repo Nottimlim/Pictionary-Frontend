@@ -137,6 +137,12 @@ As a user (AAU):
 ## Recent Updates
 
 Latest Changes (March 18, 2024):
+- Added Difficulty System:
+  - Implemented difficulty selector with EASY, MEDIUM, HARD options
+  - Added dynamic word generation based on difficulty level
+  - Integrated difficulty changes with game reset
+  - Enhanced game flow to handle difficulty changes
+  - Added seamless difficulty switching during gameplay
 - Enhanced Canvas System:
   - Optimized canvas resolution with 4x scaling for better image quality
   - Fixed cursor-to-drawing alignment issues for accurate drawing experience
