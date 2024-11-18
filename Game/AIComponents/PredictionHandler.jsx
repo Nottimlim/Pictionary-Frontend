@@ -18,15 +18,13 @@ const PredictionHandler = ({
   const initializeModel = async () => {
     try {
       setIsModelLoading(true);
-      const pipe = await pipeline(
-        'image-classification',
-        'Xenova/quickdraw-mobilevit-small',
-        {
-          progress_callback: (progress) => {
-            console.log(`Loading model: ${Math.round(progress.progress)}%`);
-          }
-        }
-      );
+      const pipe = await pipeline('image-classification', 'Xenova/quickdraw-mobilevit-small', {
+        progress_callback: (progress) => {
+          console.log(`Loading model: ${Math.round(progress.progress)}%`);
+        },
+        resize: 224,  // Use pipeline's built-in resize
+        normalize: true // Use pipeline's built-in normalization
+      });
       setClassifier(pipe);
       setError(null);
     } catch (err) {
@@ -37,47 +35,12 @@ const PredictionHandler = ({
     }
   };
 
-  const processImage = async (dataUrl) => {
-    // Remove the data URL prefix to get just the base64 data
-    const base64Data = dataUrl.split(',')[1];
-    
-    // Convert base64 to binary
-    const binaryString = window.atob(base64Data);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-
-    // Create blob from binary data
-    const blob = new Blob([bytes], { type: 'image/png' });
-
-    // Convert blob to image
-    const img = document.createElement('img');
-    img.src = URL.createObjectURL(blob);
-    
+  const createImageFromBase64 = (base64String) => {
     return new Promise((resolve, reject) => {
-      img.onload = () => {
-        // Create a canvas to potentially resize/normalize the image
-        const canvas = document.createElement('canvas');
-        canvas.width = 224;  // Standard input size for many vision models
-        canvas.height = 224;
-        
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        
-        // Convert to blob with specific format
-        canvas.toBlob((processedBlob) => {
-          resolve(processedBlob);
-        }, 'image/png');
-        
-        // Clean up
-        URL.revokeObjectURL(img.src);
-      };
-      img.onerror = reject;
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = base64String;
     });
   };
 
@@ -96,24 +59,24 @@ const PredictionHandler = ({
     setError(null);
 
     try {
-      // Process the image
-      const processedBlob = await processImage(imageData);
-      console.log('Processed image blob:', {
-        type: processedBlob.type,
-        size: processedBlob.size
+      console.log('Starting prediction with image:', {
+        dataLength: imageData.length,
+        isBase64: imageData.startsWith('data:image/png;base64,'),
       });
 
-      // Convert blob to array buffer
-      const arrayBuffer = await processedBlob.arrayBuffer();
+      // Convert base64 to Image object
+      const img = await createImageFromBase64(imageData);
       
-      // Create a fresh Uint8Array from the array buffer
-      const uint8Array = new Uint8Array(arrayBuffer);
-      
-      // Run prediction
-      const predictions = await classifier(uint8Array.buffer);
+      console.log('Processing image:', {
+        width: img.width,
+        height: img.height,
+        type: 'HTMLImageElement'
+      });
+
+      // Run prediction using the pipeline's built-in normalization
+      const predictions = await classifier(img);
       console.log('Raw predictions:', predictions);
 
-      // Format predictions and check for match
       const formattedPredictions = predictions.map(pred => ({
         label: pred.label.replace(/_/g, ' ').toLowerCase(),
         score: pred.score

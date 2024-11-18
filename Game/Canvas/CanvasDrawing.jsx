@@ -44,21 +44,22 @@ const CanvasDrawing = forwardRef(
         if (!normalizedCanvas) return;
 
         const imageData = normalizedCanvas.toDataURL("image/png");
-        console.log("Canvas output:", {
-          isBase64: imageData.startsWith("data:image/png;base64,"),
-          length: imageData.length,
-          preview: imageData.substring(0, 100),
-          dimensions: {
-            original: {
-              width: canvasRef.current.width,
-              height: canvasRef.current.height,
-            },
-            normalized: {
-              width: normalizedCanvas.width,
-              height: normalizedCanvas.height,
-            },
-          },
-        });
+        console.log(imageData)
+        // console.log("Canvas output:", {
+        //   isBase64: imageData.startsWith("data:image/png;base64,"),
+        //   length: imageData.length,
+        //   preview: imageData.substring(0, 100),
+        //   dimensions: {
+        //     original: {
+        //       width: canvasRef.current.width,
+        //       height: canvasRef.current.height,
+        //     },
+        //     normalized: {
+        //       width: normalizedCanvas.width,
+        //       height: normalizedCanvas.height,
+        //     },
+        //   },
+        // });
         onImageUpdate(imageData);
       } catch (error) {
         console.error("Error getting canvas data:", error);
