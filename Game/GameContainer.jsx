@@ -30,13 +30,13 @@ const GameContainer = () => {
 
   const canvasRef = useRef(null);
 
-  // Initialize game with AI word and session
+  // Initialize game with word and session
   const initializeGame = async (newDifficulty = difficulty) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Get AI-generated word with new difficulty
+      // Get word with new difficulty
       const word = await generateWord(newDifficulty);
       setSelectedWord(word);
 
@@ -79,15 +79,6 @@ const GameContainer = () => {
     console.log("Time up called"); // Debug log
     setGameState((prevState) => {
       if (prevState === "playing") {
-        // // Simulate a mock result immediately for testing
-        // // You can remove this later when AI prediction is working
-        // setTimeout(() => {
-        //   const mockResult = {
-        //     winner: Math.random() > 0.5,
-        //     // Add other properties as needed
-        //   };
-        //   setResult(mockResult);
-        // }, 1000);
         return "timeUp";
       }
       return prevState;
@@ -98,7 +89,6 @@ const GameContainer = () => {
     setDifficulty(newDifficulty);
     await initializeGame(newDifficulty);
   };
-
   const handleImageUpdate = useCallback(
     (newImageData) => {
       const imageInfo = {
@@ -405,7 +395,10 @@ const GameContainer = () => {
             </div>
             <div className="bg-white p-8 text-center">
               <Result {...result} selectedWord={selectedWord?.prompt} />
-              <button onClick={handlePlayAgain} className="retroButton text-lg mt-6">
+              <button
+                onClick={handlePlayAgain}
+                className="retroButton text-lg mt-6"
+              >
                 Play Again
               </button>
             </div>

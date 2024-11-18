@@ -146,6 +146,16 @@ As a user (AAU):
 
 ## Recent Updates
 
+Latest Changes (March 19, 2024):
+- Enhanced Canvas System:
+  - Implemented 224x224 normalization for ML model input
+  - Maintained high-resolution drawing while normalizing output
+  - Fixed touch event handling across devices
+  - Added cross-browser support for touch interactions
+  - Optimized canvas performance with proper context settings
+  - Improved memory management for canvas operations
+  - Enhanced coordinate scaling for better drawing accuracy
+
 Latest Changes (March 18, 2024):
 - Added Difficulty System:
   - Implemented difficulty selector with EASY, MEDIUM, HARD options
