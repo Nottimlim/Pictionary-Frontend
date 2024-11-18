@@ -82,6 +82,16 @@ As a user (AAU):
 - id (Integer, PK)
 - game_id (FK)
 - art (JSON)
+  ```json
+  {
+    "imageData": "data:image/png;base64,...",
+    "metadata": {
+      "format": "png",
+      "size": "129682",
+      "word": "computer",
+      "difficulty": "EASY"
+    }
+  }
 
 ## API Routes
 ### Game Routes
@@ -137,6 +147,12 @@ As a user (AAU):
 ## Recent Updates
 
 Latest Changes (March 18, 2024):
+- Added Difficulty System:
+  - Implemented difficulty selector with EASY, MEDIUM, HARD options
+  - Added dynamic word generation based on difficulty level
+  - Integrated difficulty changes with game reset
+  - Enhanced game flow to handle difficulty changes
+  - Added seamless difficulty switching during gameplay
 - Enhanced Canvas System:
   - Optimized canvas resolution with 4x scaling for better image quality
   - Fixed cursor-to-drawing alignment issues for accurate drawing experience
@@ -148,6 +164,9 @@ Latest Changes (March 18, 2024):
   - Added loading and error states for better user feedback
   - Implemented fallback word generation system
   - Fixed modal behavior for consistent user experience
+
+- Auth:
+  - Registeration redirect to game
 
 - Drawing Tools Improvements:
   - Changed default brush size to start at maximum (20)

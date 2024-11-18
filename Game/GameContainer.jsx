@@ -6,6 +6,7 @@ import Result from "./AIComponents/Result.jsx";
 import Timer from "./Timer.jsx";
 import { generateWord } from "../src/services/wordGeneration.js";
 import mockAPI from "../src/services/mockData.js";
+import DifficultySelector from "./DifficultySelector";
 
 const TIMER_DURATION = 20;
 
@@ -24,35 +25,49 @@ const GameContainer = () => {
   const [result, setResult] = useState(null);
   const [gameId, setGameId] = useState(null);
   const [imageData, setImageData] = useState(null);
+  const [difficulty, setDifficulty] = useState("EASY");
+  const [showDifficultyModal, setShowDifficultyModal] = useState(false);
 
   const canvasRef = useRef(null);
 
-  // Initialize game with word and session
-  useEffect(() => {
-    const initializeGame = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  // Initialize game with AI word and session
+  const initializeGame = async (newDifficulty = difficulty) => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        // Get word
-        const word = await generateWord("EASY");
-        setSelectedWord(word); // word is an object with prompt and difficulty
+      // Get AI-generated word with new difficulty
+      const word = await generateWord(newDifficulty);
+      setSelectedWord(word);
 
-        // Create game session
-        const newGame = await mockAPI.createGame(1, "EASY", word?.prompt);
-        setGameId(newGame.game.id);
-      } catch (err) {
-        console.error("Error initializing game:", err);
-        // Use fallback word if AI generation fails
-        const word = await mockAPI.getRandomWord();
-        setSelectedWord(word);
-        const newGame = await mockAPI.createGame(1, "EASY");
-        setGameId(newGame.game.id);
-      } finally {
-        setIsLoading(false);
+      // Create game session with new difficulty
+      const newGame = await mockAPI.createGame(1, newDifficulty, word?.prompt);
+      setGameId(newGame.game.id);
+
+      // Set game state to initial to show the word prompt modal
+      setGameState("initial");
+
+      // Reset other states
+      setResult(null);
+      setImageData(null);
+
+      // Clear canvas
+      if (canvasRef.current) {
+        canvasRef.current.clearCanvas();
       }
-    };
+    } catch (err) {
+      console.error("Error initializing game:", err);
+      // Use fallback word if AI generation fails
+      const word = await mockAPI.getRandomWord();
+      setSelectedWord(word);
+      const newGame = await mockAPI.createGame(1, newDifficulty);
+      setGameId(newGame.game.id);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     initializeGame();
   }, []);
 
@@ -77,15 +92,44 @@ const GameContainer = () => {
       }
       return prevState;
     });
-  }, []);
+  }, [selectedWord, difficulty]);
 
-  const handleImageUpdate = useCallback((newImageData) => {
-    console.log("Handle Image Data: ", newImageData)
-    setImageData(newImageData);
-  }, []);
+  const handleDifficultyChange = async (newDifficulty) => {
+    setDifficulty(newDifficulty);
+    await initializeGame(newDifficulty);
+  };
+
+  const handleImageUpdate = useCallback(
+    (newImageData) => {
+      const imageInfo = {
+        timestamp: new Date().toISOString(),
+        word: selectedWord?.prompt,
+        difficulty: difficulty,
+        gameState: gameState,
+        imageStats: {
+          format: "base64",
+          length: newImageData?.length,
+          preview: newImageData?.substring(0, 50) + "...", // Show just the start of the data
+        },
+      };
+      console.log("Canvas Image Updated:", JSON.stringify(imageInfo, null, 2));
+      setImageData(newImageData);
+    },
+    [selectedWord, difficulty, gameState]
+  );
 
   const handlePredictionComplete = (predictionResult) => {
-    console.log("Prediction complete:", predictionResult); // Debug log
+    const resultInfo = {
+      timestamp: new Date().toISOString(),
+      gameState: {
+        word: selectedWord?.prompt,
+        difficulty: difficulty,
+        currentState: gameState,
+      },
+      prediction: predictionResult,
+      imageDataPresent: !!imageData,
+    };
+    console.log("Prediction Results:", JSON.stringify(resultInfo, null, 2));
     setResult(predictionResult);
   };
 
@@ -93,26 +137,25 @@ const GameContainer = () => {
     try {
       setIsLoading(true);
       setError(null);
-      setResult(null);  // Clear result first
-      setGameState("initial");  // Reset game state
-      setImageData(null);  // Clear image data
-  
+      setResult(null); // Clear result first
+      setGameState("initial"); // Reset game state
+      setImageData(null); // Clear image data
+
       // Get new word and create new game
       const word = await generateWord("EASY");
       const newGame = await mockAPI.createGame(1, "EASY", word?.prompt);
-  
+
       setSelectedWord(word);
       setGameId(newGame.game.id);
-  
+
       // Clear canvas after all states are reset and new game is created
       if (canvasRef.current) {
         canvasRef.current.clearCanvas();
       }
-  
     } catch (error) {
       console.error("Error starting new game:", error);
       setError("Failed to start new game. Please try again.");
-      
+
       // Fallback to mock data if AI fails
       try {
         const word = await mockAPI.getRandomWord();
@@ -127,7 +170,6 @@ const GameContainer = () => {
       setIsLoading(false);
     }
   };
-  
 
   if (isLoading) {
     return (
@@ -175,6 +217,19 @@ const GameContainer = () => {
               <img
                 src="../src/image/clear.png"
                 alt="Clear Canvas"
+                className="w-1.5 h-1.5"
+              />
+            </button>
+          </div>
+          {/* Diffifculty */}
+          <div className="flex flex-col items-center mb-1">
+            <button
+              onClick={() => setShowDifficultyModal(true)}
+              className="w-3 h-3 flex items-center justify-center hover:bg-atomic-tangerine-200 active:bg-atomic-tangerine-300 border border-eerie-black-300"
+            >
+              <img
+                src="../src/image/difficulty.png"
+                alt="Difficulty"
                 className="w-1.5 h-1.5"
               />
             </button>
@@ -264,7 +319,27 @@ const GameContainer = () => {
                   Draw your word and the AI will try to guess it...
                 </p>
                 <button
-                  onClick={() => setGameState("timeUp")} // Direct state change
+                  onClick={() => {
+                    const drawingInfo = {
+                      timestamp: new Date().toISOString(),
+                      gameState: {
+                        word: selectedWord?.prompt,
+                        difficulty: difficulty,
+                        currentState: gameState,
+                      },
+                      imageData: {
+                        preview:
+                          canvasRef.current?.getImageData()?.substring(0, 50) +
+                          "...",
+                        fullLength: canvasRef.current?.getImageData()?.length,
+                      },
+                    };
+                    console.log(
+                      "Check Drawing Triggered:",
+                      JSON.stringify(drawingInfo, null, 2)
+                    );
+                    handleTimeUp();
+                  }}
                   className="retroButton mt-auto hover:bg-indian-red-400"
                 >
                   Check Drawing
@@ -284,7 +359,7 @@ const GameContainer = () => {
                   </div>
                 )}
               </>
-            ) : (            
+            ) : (
               <p className="text-sm text-eerie-black-600 break-words">
                 Draw your word and the AI will try to guess it...
               </p>
@@ -336,6 +411,14 @@ const GameContainer = () => {
             </div>
           </div>
         </div>
+      )}
+      {/* Difficulty Selector Modal */}
+      {showDifficultyModal && (
+        <DifficultySelector
+          currentDifficulty={difficulty}
+          onSelectDifficulty={handleDifficultyChange}
+          onClose={() => setShowDifficultyModal(false)}
+        />
       )}
     </div>
   );

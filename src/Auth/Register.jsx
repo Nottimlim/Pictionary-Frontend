@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import mockAPI from '../services/mockData';
+import { authService } from '../services/authService';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -11,30 +12,50 @@ const Register = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear error when user starts typing
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match fam!');
+      setIsLoading(false);
       return;
     }
 
     try {
-      const response = await mockAPI.register(formData);
-      if (response.success) {
-        navigate('/login');
+      // First register the user
+      const registerResponse = await mockAPI.register(formData);
+      
+      if (registerResponse.success) {
+        // Then automatically log them in
+        const loginResponse = await mockAPI.login({
+          username: formData.username,
+          password: formData.password
+        });
+
+        if (loginResponse.success) {
+          // Store auth data
+          authService.setAuth(loginResponse.user);
+          // Redirect to game
+          navigate('/game');
+        }
       }
     } catch (error) {
       setError(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -61,6 +82,7 @@ const Register = () => {
                   onChange={handleChange}
                   className="retroInput"
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div>
@@ -72,6 +94,7 @@ const Register = () => {
                   onChange={handleChange}
                   className="retroInput"
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div>
@@ -83,6 +106,7 @@ const Register = () => {
                   onChange={handleChange}
                   className="retroInput"
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div>
@@ -94,16 +118,22 @@ const Register = () => {
                   onChange={handleChange}
                   className="retroInput"
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <button type="submit" className="retroButton">
-                  Register
+                <button 
+                  type="submit" 
+                  className="retroButton"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Creating Account...' : 'Register'}
                 </button>
                 <button 
                   type="button" 
                   onClick={() => navigate('/login')}
                   className="text-eerie-black-600 hover:text-indian-red"
+                  disabled={isLoading}
                 >
                   Already have an account? Login
                 </button>
