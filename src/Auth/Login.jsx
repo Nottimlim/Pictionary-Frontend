@@ -1,33 +1,48 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import mockAPI from '../services/mockData';
+import { authService } from '../services/authService';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
   });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear error when user starts typing
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
+      // Try to login with mock API
       const response = await mockAPI.login(formData);
+      
       if (response.success) {
-        navigate('/game');
+        // Store auth data
+        authService.setAuth(response.user);
+        
+        // Navigate to the page they were trying to access or default to /game
+        const destinationPath = location.state?.from?.pathname || '/game';
+        navigate(destinationPath, { replace: true });
       }
     } catch (error) {
-      setError(error.message);
+      setError(error.message || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,6 +69,7 @@ const Login = () => {
                   onChange={handleChange}
                   className="retroInput"
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div>
@@ -65,16 +81,22 @@ const Login = () => {
                   onChange={handleChange}
                   className="retroInput"
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <button type="submit" className="retroButton">
-                  Login
+                <button 
+                  type="submit" 
+                  className="retroButton"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Logging in...' : 'Login'}
                 </button>
                 <button 
                   type="button" 
                   onClick={() => navigate('/register')}
                   className="text-eerie-black-600 hover:text-indian-red"
+                  disabled={isLoading}
                 >
                   Need an account? Register
                 </button>
@@ -85,7 +107,6 @@ const Login = () => {
       </div>
     </div>
   );
-  
 };
 
 export default Login;
