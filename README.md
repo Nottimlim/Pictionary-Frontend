@@ -149,6 +149,9 @@ Latest Changes (March 18, 2024):
   - Implemented fallback word generation system
   - Fixed modal behavior for consistent user experience
 
+- Auth:
+  - Registeration redirect to game
+
 - Drawing Tools Improvements:
   - Changed default brush size to start at maximum (20)
   - Added brush size slider with reverse direction for intuitive control
