@@ -29,7 +29,7 @@ const GameContainer = () => {
   const [showDifficultyModal, setShowDifficultyModal] = useState(false);
 
   const canvasRef = useRef(null);
-  
+
   // Initialize game with word and session
   const initializeGame = async (newDifficulty = difficulty) => {
     try {
@@ -75,16 +75,15 @@ const GameContainer = () => {
     setGameState("playing");
   };
 
-const handleTimeUp = useCallback(() => {
-  console.log("Time up called"); // Debug log
-  setGameState((prevState) => {
-    if (prevState === "playing") {
-      return "timeUp";
-    }
-    return prevState;
-  });
-}, [selectedWord, difficulty]);
-
+  const handleTimeUp = useCallback(() => {
+    console.log("Time up called"); // Debug log
+    setGameState((prevState) => {
+      if (prevState === "playing") {
+        return "timeUp";
+      }
+      return prevState;
+    });
+  }, [selectedWord, difficulty]);
 
   const handleDifficultyChange = async (newDifficulty) => {
     setDifficulty(newDifficulty);
@@ -310,28 +309,27 @@ const handleTimeUp = useCallback(() => {
                   Draw your word and the AI will try to guess it...
                 </p>
                 <button
-<button
-  onClick={() => {
-    const drawingInfo = {
-      timestamp: new Date().toISOString(),
-      gameState: {
-        word: selectedWord?.prompt,
-        difficulty: difficulty,
-        currentState: gameState,
-      },
-      imageData: {
-        preview: canvasRef.current?.getImageData()?.substring(0, 50) + "...",
-        fullLength: canvasRef.current?.getImageData()?.length,
-      },
-    };
-    console.log("Check Drawing Triggered:", JSON.stringify(drawingInfo, null, 2));
-    handleTimeUp();
-  }}
-  className="retroButton mt-auto hover:bg-indian-red-400"
->
-  Check Drawing
-</button>
-
+                  onClick={() => {
+                    const drawingInfo = {
+                      timestamp: new Date().toISOString(),
+                      gameState: {
+                        word: selectedWord?.prompt,
+                        difficulty: difficulty,
+                        currentState: gameState,
+                      },
+                      imageData: {
+                        preview:
+                          canvasRef.current?.getImageData()?.substring(0, 50) +
+                          "...",
+                        fullLength: canvasRef.current?.getImageData()?.length,
+                      },
+                    };
+                    console.log(
+                      "Check Drawing Triggered:",
+                      JSON.stringify(drawingInfo, null, 2)
+                    );
+                    handleTimeUp();
+                  }}
                   className="retroButton mt-auto hover:bg-indian-red-400"
                 >
                   Check Drawing
@@ -397,7 +395,10 @@ const handleTimeUp = useCallback(() => {
             </div>
             <div className="bg-white p-8 text-center">
               <Result {...result} selectedWord={selectedWord?.prompt} />
-              <button onClick={handlePlayAgain} className="retroButton text-lg mt-6">
+              <button
+                onClick={handlePlayAgain}
+                className="retroButton text-lg mt-6"
+              >
                 Play Again
               </button>
             </div>
