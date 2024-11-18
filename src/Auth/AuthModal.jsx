@@ -2,8 +2,8 @@ import React from "react";
 import { useState } from "react";
 import Login from "./Login";
 import Register from "./Register";
-  
-const Modal = ({ showModal, onClose, LoginComponent, RegisterComponent }) => {
+
+const Modal = ({ showModal, onClose }) => {
   if (!showModal) return null; // Don't render the modal if it's not supposed to be visible
 
   const [showLogin, setShowLogin] = useState(true);
@@ -20,8 +20,11 @@ const Modal = ({ showModal, onClose, LoginComponent, RegisterComponent }) => {
           onClose();
       }}
     >
-      <div className="rounded-lg w-[600px] h-[600px] relative" id="overlay2">
-        <div className="modal-body">
+      <div
+        className="rounded-lg w-[800px] h-[600px] flex justify-center items-center relative flex-grow-1"
+        id="overlay2"
+      >
+        <div className="modal-body w-[800px]">
           {showLogin ? (
             <Login setShowLogin={setShowLogin} />
           ) : (
