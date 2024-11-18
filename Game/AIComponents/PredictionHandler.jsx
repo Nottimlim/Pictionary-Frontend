@@ -1,99 +1,133 @@
-// Game/AIComponents/PredictionHandler.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { pipeline } from '@huggingface/transformers';
 
 const PredictionHandler = ({ 
   imageData, 
   selectedWord, 
   onPredictionComplete 
 }) => {
-  // =============== State Management ===============
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [classifier, setClassifier] = useState(null);
+  const [isModelLoading, setIsModelLoading] = useState(true);
 
-  const API_URL = 'https://api-inference.huggingface.co/models/Xenova/quickdraw-mobilevit-small';
-  const API_KEY = import.meta.env.VITE_HUGGING_FACE_TOKEN;
+  useEffect(() => {
+    initializeModel();
+  }, []);
 
+  const initializeModel = async () => {
+    try {
+      setIsModelLoading(true);
+      const pipe = await pipeline(
+        'image-classification',
+        'Xenova/quickdraw-mobilevit-small',
+        {
+          progress_callback: (progress) => {
+            console.log(`Loading model: ${Math.round(progress.progress * 100)}%`);
+          }
+        }
+      );
+      setClassifier(pipe);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading model:', err);
+      setError('Failed to load the recognition model. Please refresh the page.');
+    } finally {
+      setIsModelLoading(false);
+    }
+  };
 
-   //Handles the prediction process when the user clicks "Check Drawing"
+  const dataURLToImage = async (dataUrl) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  };
+
   const handlePredict = async () => {
-    // -------- Input Validation --------
     if (!imageData) {
       setError('No drawing to analyze');
       return;
     }
 
-    if (!API_KEY) {
-      setError('API key not configured');
+    if (!classifier) {
+      setError('Model not ready. Please wait or refresh the page.');
       return;
     }
 
-    // -------- Start Prediction Process --------
     setIsLoading(true);
     setError(null);
 
     try {
-      // Convert base64 image string to blob for API
+      // Convert base64 to blob
       const response = await fetch(imageData);
       const blob = await response.blob();
-
-      // Make API call to HuggingFace
-      const result = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: blob
+      
+      console.log('Processing blob:', {
+        type: blob.type,
+        size: blob.size
       });
 
-      // Check for API errors
-      if (!result.ok) {
-        throw new Error('Failed to analyze image');
-      }
+      // Convert blob to array buffer
+      const arrayBuffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      
+      console.log('Converted to Uint8Array:', {
+        length: uint8Array.length,
+        firstFewBytes: uint8Array.slice(0, 10)
+      });
 
-      // Parse prediction results
-      const predictions = await result.json();
-      console.log('Raw predictions:', predictions); // For debugging
+      // Run prediction with Uint8Array
+      const predictions = await classifier(uint8Array);
+      console.log('Raw predictions:', predictions);
 
-      // Check if any prediction matches the selected word
-      // Using a default 0.3 threshold for sketch recognition as drawings can be abstract
-      const matchResult = predictions.some(pred => 
-        pred.score > 0.3 && // Confidence threshold
-        pred.label.toLowerCase().includes(selectedWord.toLowerCase())
-      ) ? 'PASS' : 'FAIL';
+      // Format predictions and check for match
+      const formattedPredictions = predictions.map(pred => ({
+        label: pred.label.replace(/_/g, ' ').toLowerCase(),
+        score: pred.score
+      }));
 
-      // Get the highest confidence prediction
-      const topPrediction = predictions[0];
+      const matchResult = formattedPredictions.some(pred => 
+        pred.score > 0.3 && 
+        pred.label.includes(selectedWord.toLowerCase())
+      );
 
-      // Send results back to parent component
-      onPredictionComplete({ 
+      const topPrediction = formattedPredictions[0];
+
+      const result = {
         prediction: topPrediction.label,
-        matchResult,
-        confidence: `${Math.round(topPrediction.score * 100)}%`,
-        allPredictions: predictions // Include all predictions for debugging
-      });
+        winner: matchResult,
+        confidence: `${Math.round(topPrediction.score * 100)}`,
+        allPredictions: formattedPredictions,
+        selectedWord: selectedWord,
+        message: matchResult 
+          ? `This appears to be a ${topPrediction.label}, drawn with ${Math.round(topPrediction.score * 100)}% clarity.`
+          : `I see what appears to be a ${topPrediction.label}, though I was expecting a ${selectedWord}.`
+      };
+
+      console.log('Final result:', result);
+      onPredictionComplete(result);
 
     } catch (err) {
       console.error('Prediction error:', err);
+      console.error('Error details:', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack
+      });
       setError('Failed to analyze the drawing. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
-
-  // =============== Render UI ===============
   return (
     <div className="space-y-4">
-      {/* Prediction Button */}
-      <button
-        onClick={handlePredict}
-        disabled={isLoading}
-        className="retroButton w-full" 
-        type="button"
-      >
-        {isLoading ? (
-          // Loading Spinner and Text
-          <div className="flex items-center justify-center gap-2">
+      {isModelLoading ? (
+        <div className="text-center p-4">
+          <div className="flex items-center justify-center gap-2 text-gray-600">
             <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
               <circle 
                 className="opacity-25" 
@@ -109,35 +143,48 @@ const PredictionHandler = ({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" 
               />
             </svg>
-            Analyzing Drawing...
+            <span>Loading recognition model...</span>
           </div>
-        ) : (
-          'Check Drawing'
-        )}
-      </button>
+        </div>
+      ) : (
+        <button
+          onClick={handlePredict}
+          disabled={isLoading || !classifier}
+          className={`retroButton w-full ${!classifier || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          type="button"
+        >
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle 
+                  className="opacity-25" 
+                  cx="12" 
+                  cy="12" 
+                  r="10" 
+                  stroke="currentColor" 
+                  strokeWidth="4" 
+                />
+                <path 
+                  className="opacity-75" 
+                  fill="currentColor" 
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" 
+                />
+              </svg>
+              Analyzing Drawing...
+            </div>
+          ) : (
+            'Check Drawing'
+          )}
+        </button>
+      )}
 
-      {/* Error Display */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded text-red-600 text-sm">
           {error}
         </div>
-      )}
+      )} 
     </div>
   );
 };
 
 export default PredictionHandler;
-
-/**
- * Example prediction response format:
- * {
- *   prediction: "cat",
- *   matchResult: "PASS",
- *   confidence: "85%",
- *   allPredictions: [
- *     { label: "cat", score: 0.85 },
- *     { label: "dog", score: 0.10 },
- *     ...
- *   ]
- * }
- */

@@ -2,25 +2,34 @@ import React from 'react';
 
 const Result = ({ 
   prediction,     // The main prediction from the model
-  matchResult,    // 'PASS' or 'FAIL'
+  winner,         // boolean: true for match, false for no match
   confidence,     // Confidence score as percentage
-  allPredictions  // Array of all top predictions (optional)
+  allPredictions, // Array of all top predictions
+  message,        // Expert analysis message
+  selectedWord    // The word that was supposed to be drawn
 }) => {
-  // Determine if the drawing matched the word
-  const isPass = matchResult === 'PASS';
+  // Format expert message if not provided
+  const expertMessage = message || (winner 
+    ? `This appears to be a ${prediction}, drawn with ${confidence} clarity.`
+    : `I see what appears to be a ${prediction}, though I was expecting a ${selectedWord}.`
+  );
 
   return (
-    // Main container with conditional styling based on result
     <div className={`mt-6 p-6 rounded-lg shadow-md ${
-      isPass 
-        ? 'bg-green-50 border border-green-200' // Success styling
-        : 'bg-yellow-50 border border-yellow-200' // Try again styling
+      winner 
+        ? 'bg-green-50 border border-green-200'
+        : 'bg-yellow-50 border border-yellow-200'
     }`}>
       {/* Result Header */}
       <div className={`text-2xl font-bold mb-4 ${
-        isPass ? 'text-green-600' : 'text-yellow-600'
+        winner ? 'text-green-600' : 'text-yellow-600'
       }`}>
-        {isPass ? '🎉 Great Job!' : '😅 Nice Try!'}
+        {winner ? '🎉 Great Job!' : '😅 Nice Try!'}
+      </div>
+
+      {/* Expert Analysis */}
+      <div className="text-lg mb-4 text-gray-700">
+        {expertMessage}
       </div>
 
       {/* Results Content */}
@@ -29,9 +38,9 @@ const Result = ({
         <div className="flex items-center">
           <span className="font-semibold mr-2">Result:</span>
           <span className={`${
-            isPass ? 'text-green-600' : 'text-yellow-600'
+            winner ? 'text-green-600' : 'text-yellow-600'
           } font-bold`}>
-            {matchResult}
+            {winner ? 'MATCH' : 'NO MATCH'}
           </span>
           {/* Confidence Score */}
           <span className="ml-2 text-gray-500">({confidence})</span>
@@ -50,7 +59,6 @@ const Result = ({
             <ul className="space-y-1">
               {allPredictions.map((pred, index) => (
                 <li key={index}>
-                  {/* Display each prediction with its confidence score */}
                   {pred.label}: {Math.round(pred.score * 100)}%
                 </li>
               ))}
@@ -58,13 +66,6 @@ const Result = ({
           </div>
         )}
       </div>
-
-      {/* Encouragement Message for Failed Attempts */}
-      {!isPass && (
-        <div className="mt-4 text-sm text-gray-600">
-          Keep practicing! Try to make your drawing clearer and more detailed.
-        </div>
-      )}
     </div>
   );
 };

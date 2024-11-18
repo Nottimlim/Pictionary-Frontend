@@ -18,6 +18,11 @@ const CanvasDrawing = forwardRef(
       if (canvasRef.current && onImageUpdate) {
         try {
           const imageData = canvasRef.current.toDataURL("image/png");
+          console.log('Canvas output:', {
+            isBase64: imageData.startsWith('data:image/png;base64,'),
+            length: imageData.length,
+            preview: imageData.substring(0, 100)
+          });
           onImageUpdate(imageData);
         } catch (error) {
           console.error("Error getting canvas data:", error);

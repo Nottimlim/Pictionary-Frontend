@@ -29,14 +29,14 @@ const GameContainer = () => {
   const [showDifficultyModal, setShowDifficultyModal] = useState(false);
 
   const canvasRef = useRef(null);
-
-  // Initialize game with AI word and session
+  
+  // Initialize game with word and session
   const initializeGame = async (newDifficulty = difficulty) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Get AI-generated word with new difficulty
+      // Get word with new difficulty
       const word = await generateWord(newDifficulty);
       setSelectedWord(word);
 
@@ -75,33 +75,21 @@ const GameContainer = () => {
     setGameState("playing");
   };
 
-  const handleTimeUp = useCallback(() => {
-    console.log("Time up called"); // Debug log
-    setGameState((prevState) => {
-      if (prevState === "playing") {
-        // Simulate a mock result immediately for testing
-        // You can remove this later when AI prediction is working
-        setTimeout(() => {
-          const mockResult = {
-            winner: Math.random() > 0.5,
-            // Add other properties as needed
-          };
-          console.log("Check Drawing Result:", mockResult);
-          console.log("Current Word:", selectedWord?.prompt);
-          console.log("Current Difficulty:", difficulty);
-          setResult(mockResult);
-        }, 1000);
-        return "timeUp";
-      }
-      return prevState;
-    });
-  }, [selectedWord, difficulty]);
+const handleTimeUp = useCallback(() => {
+  console.log("Time up called"); // Debug log
+  setGameState((prevState) => {
+    if (prevState === "playing") {
+      return "timeUp";
+    }
+    return prevState;
+  });
+}, [selectedWord, difficulty]);
+
 
   const handleDifficultyChange = async (newDifficulty) => {
     setDifficulty(newDifficulty);
     await initializeGame(newDifficulty);
   };
-
   const handleImageUpdate = useCallback(
     (newImageData) => {
       const imageInfo = {
@@ -322,27 +310,28 @@ const GameContainer = () => {
                   Draw your word and the AI will try to guess it...
                 </p>
                 <button
-                  onClick={() => {
-                    const drawingInfo = {
-                      timestamp: new Date().toISOString(),
-                      gameState: {
-                        word: selectedWord?.prompt,
-                        difficulty: difficulty,
-                        currentState: gameState,
-                      },
-                      imageData: {
-                        preview:
-                          canvasRef.current?.getImageData()?.substring(0, 50) +
-                          "...",
-                        fullLength: canvasRef.current?.getImageData()?.length,
-                      },
-                    };
-                    console.log(
-                      "Check Drawing Triggered:",
-                      JSON.stringify(drawingInfo, null, 2)
-                    );
-                    handleTimeUp();
-                  }}
+<button
+  onClick={() => {
+    const drawingInfo = {
+      timestamp: new Date().toISOString(),
+      gameState: {
+        word: selectedWord?.prompt,
+        difficulty: difficulty,
+        currentState: gameState,
+      },
+      imageData: {
+        preview: canvasRef.current?.getImageData()?.substring(0, 50) + "...",
+        fullLength: canvasRef.current?.getImageData()?.length,
+      },
+    };
+    console.log("Check Drawing Triggered:", JSON.stringify(drawingInfo, null, 2));
+    handleTimeUp();
+  }}
+  className="retroButton mt-auto hover:bg-indian-red-400"
+>
+  Check Drawing
+</button>
+
                   className="retroButton mt-auto hover:bg-indian-red-400"
                 >
                   Check Drawing
@@ -407,10 +396,8 @@ const GameContainer = () => {
               <h2 className="text-lg font-bold">Results</h2>
             </div>
             <div className="bg-white p-8 text-center">
-              <h3 className="text-3xl font-bold text-eerie-black mb-6">
-                {result.winner ? "You Win!" : "Try Again!"}
-              </h3>
-              <button onClick={handlePlayAgain} className="retroButton text-lg">
+              <Result {...result} selectedWord={selectedWord?.prompt} />
+              <button onClick={handlePlayAgain} className="retroButton text-lg mt-6">
                 Play Again
               </button>
             </div>
