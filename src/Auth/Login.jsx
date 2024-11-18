@@ -1,30 +1,30 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import mockAPI from '../services/mockData';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import mockAPI from "../services/mockData";
 
-const Login = () => {
+const Login = ({ setShowLogin }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: '',
-    password: ''
+    username: "",
+    password: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     try {
       const response = await mockAPI.login(formData);
       if (response.success) {
-        navigate('/game');
+        navigate("/game");
       }
     } catch (error) {
       setError(error.message);
@@ -32,7 +32,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-vanilla-500 p-4">
+    <div className="flex justify-center items-center h-[600px] bg-vanilla-500 p-4">
       <div className="w-full max-w-md">
         <div className="retroContainer">
           <div className="retroHeader">
@@ -71,9 +71,10 @@ const Login = () => {
                 <button type="submit" className="retroButton">
                   Login
                 </button>
-                <button 
-                  type="button" 
-                  onClick={() => navigate('/register')}
+                <button
+                  type="button"
+                  // onClick={() => navigate('/register')}
+                  onClick={() => setShowLogin(false)}
                   className="text-eerie-black-600 hover:text-indian-red"
                 >
                   Need an account? Register
@@ -85,7 +86,6 @@ const Login = () => {
       </div>
     </div>
   );
-  
 };
 
 export default Login;

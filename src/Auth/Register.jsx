@@ -1,37 +1,37 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import mockAPI from '../services/mockData';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import mockAPI from "../services/mockData";
 
-const Register = () => {
+const Register = ({ setShowLogin }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match fam!');
+      setError("Passwords do not match fam!");
       return;
     }
 
     try {
       const response = await mockAPI.register(formData);
       if (response.success) {
-        navigate('/login');
+        navigate("/login");
       }
     } catch (error) {
       setError(error.message);
@@ -39,7 +39,7 @@ const Register = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-vanilla-500 p-4">
+    <div className="flex justify-center items-center h-[600px] bg-vanilla-500 p-4">
       <div className="w-full max-w-md">
         <div className="retroContainer">
           <div className="retroHeader">
@@ -100,9 +100,9 @@ const Register = () => {
                 <button type="submit" className="retroButton">
                   Register
                 </button>
-                <button 
-                  type="button" 
-                  onClick={() => navigate('/login')}
+                <button
+                  type="button"
+                  onClick={() => setShowLogin(true)}
                   className="text-eerie-black-600 hover:text-indian-red"
                 >
                   Already have an account? Login

@@ -1,6 +1,6 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-// import Navbar from "./navbar/NavBar";
+// import { useNavigate } from "react-router-dom";
+import Navbar from "./navbar/NavBar";
 import Modal from "./Auth/AuthModal";
 import Login from "./Auth/Login";
 import Register from "./Auth/Register";
@@ -36,11 +36,11 @@ const InstructionCard = ({ step, title, description }) => (
 );
 
 const HomePage = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
-  const handleStartGame = () => {
-    navigate("/login");
-  };
+  // const handleStartGame = () => {
+  //   navigate("/login");
+  // };
   const [showModal, setShowModal] = useState(false);
   const [isLogin, setIsLogin] = useState(true); // To toggle between Login and Register
 
@@ -52,10 +52,10 @@ const HomePage = () => {
 
   return (
     <>
-      {/* <Navbar
+      <Navbar
         containerClassName="bg-atomic-tangerine-500 text-white py-1 "
         brandName="whataduudle Game"
-      /> */}
+      />
       <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-vanilla-500">
         <div className="w-full max-w-4xl retroContainer">
           <div className="retroHeader">
@@ -84,16 +84,16 @@ const HomePage = () => {
                 onClose={toggleModal}
                 // Pass Login or Register form based on isLogin state
                 LoginComponent={<Login />}
-                // RegisterComponent={<Register />}
+                RegisterComponent={<Register />}
               />
               {/* Toggle between Login and Register */}
               <button
                 onClick={toggleForm}
                 className="text-eerie-black-600 hover:text-indian-red"
               >
-                {isLogin
+                {/* {isLogin
                   ? "Need an account? Register"
-                  : "Already have an account? Login"}
+                  : "Already have an account? Login"} */}
               </button>
             </div>
           </div>

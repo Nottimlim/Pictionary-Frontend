@@ -1,24 +1,32 @@
 import React from "react";
+import { useState } from "react";
 import Login from "./Login";
+import Register from "./Register";
+// import Login from "./Login";
 
 const Modal = ({ showModal, onClose, LoginComponent, RegisterComponent }) => {
   if (!showModal) return null; // Don't render the modal if it's not supposed to be visible
 
+  const [showLogin, setShowLogin] = useState(true);
+
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-lg w-[600px] h-[800px]  shadow-lg relative">
+      <div className="bg-white rounded-lg w-[600px] h-[600px]  shadow-lg relative">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 bg-red-500 text-white rounded-md p-2 cursor-pointer hover:bg-red-600"
+          className="absolute top-2  right-1 rounded-md p-2 cursor-pointer"
         >
-          Close
+          &times;
         </button>
 
         {/* Modal Body */}
         <div className="modal-body">
-          {LoginComponent}
-          {RegisterComponent}
+          {showLogin ? (
+            <Login setShowLogin={setShowLogin} />
+          ) : (
+            <Register setShowLogin={setShowLogin} />
+          )}
         </div>
       </div>
     </div>
