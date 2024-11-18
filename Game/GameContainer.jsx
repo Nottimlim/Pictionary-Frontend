@@ -27,14 +27,14 @@ const GameContainer = () => {
 
   const canvasRef = useRef(null);
 
-  // Initialize game with AI word and session
+  // Initialize game with word and session
   useEffect(() => {
     const initializeGame = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
-        // Get AI-generated word
+        // Get word
         const word = await generateWord("EASY");
         setSelectedWord(word); // word is an object with prompt and difficulty
 
@@ -64,15 +64,15 @@ const GameContainer = () => {
     console.log("Time up called"); // Debug log
     setGameState((prevState) => {
       if (prevState === "playing") {
-        // Simulate a mock result immediately for testing
-        // You can remove this later when AI prediction is working
-        setTimeout(() => {
-          const mockResult = {
-            winner: Math.random() > 0.5,
-            // Add other properties as needed
-          };
-          setResult(mockResult);
-        }, 1000);
+        // // Simulate a mock result immediately for testing
+        // // You can remove this later when AI prediction is working
+        // setTimeout(() => {
+        //   const mockResult = {
+        //     winner: Math.random() > 0.5,
+        //     // Add other properties as needed
+        //   };
+        //   setResult(mockResult);
+        // }, 1000);
         return "timeUp";
       }
       return prevState;
@@ -80,6 +80,7 @@ const GameContainer = () => {
   }, []);
 
   const handleImageUpdate = useCallback((newImageData) => {
+    console.log("Handle Image Data: ", newImageData)
     setImageData(newImageData);
   }, []);
 
@@ -263,7 +264,7 @@ const GameContainer = () => {
                   Draw your word and the AI will try to guess it...
                 </p>
                 <button
-                  onClick={handleTimeUp}
+                  onClick={() => setGameState("timeUp")} // Direct state change
                   className="retroButton mt-auto hover:bg-indian-red-400"
                 >
                   Check Drawing
@@ -328,10 +329,8 @@ const GameContainer = () => {
               <h2 className="text-lg font-bold">Results</h2>
             </div>
             <div className="bg-white p-8 text-center">
-              <h3 className="text-3xl font-bold text-eerie-black mb-6">
-                {result.winner ? "You Win!" : "Try Again!"}
-              </h3>
-              <button onClick={handlePlayAgain} className="retroButton text-lg">
+              <Result {...result} selectedWord={selectedWord?.prompt} />
+              <button onClick={handlePlayAgain} className="retroButton text-lg mt-6">
                 Play Again
               </button>
             </div>
