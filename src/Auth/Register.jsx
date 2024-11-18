@@ -39,7 +39,7 @@ const Register = ({ setShowLogin }) => {
   };
 
   return (
-    <div className="flex justify-center items-center h-[600px] bg-vanilla-500 p-4">
+    <div className="flex justify-center items-center">
       <div className="w-full max-w-md">
         <div className="retroContainer">
           <div className="retroHeader">

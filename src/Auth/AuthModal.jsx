@@ -11,14 +11,14 @@ const Modal = ({ showModal, onClose, LoginComponent, RegisterComponent }) => {
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-lg w-[600px] h-[600px]  shadow-lg relative">
+      <div className="rounded-lg w-[600px] h-[600px] relative">
         {/* Close Button */}
-        <button
+        {/* <button
           onClick={onClose}
           className="absolute top-2  right-1 rounded-md p-2 cursor-pointer"
         >
           &times;
-        </button>
+        </button> */}
 
         {/* Modal Body */}
         <div className="modal-body">

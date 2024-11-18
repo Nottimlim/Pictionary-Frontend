@@ -32,13 +32,13 @@ const Login = ({ setShowLogin }) => {
   };
 
   return (
-    <div className="flex justify-center items-center h-[600px] bg-vanilla-500 p-4">
+    <div className="flex justify-center items-center">
       <div className="w-full max-w-md">
         <div className="retroContainer">
           <div className="retroHeader">
             <h2 className="text-lg font-bold">Login</h2>
           </div>
-          <div className="bg-white p-6">
+          <div className="bg-white p-6 h-90">
             {error && (
               <div className="bg-indian-red-100 border border-indian-red-500 text-indian-red-700 px-4 py-2 mb-4">
                 {error}
