@@ -23,7 +23,7 @@ const PredictionHandler = ({
         'Xenova/quickdraw-mobilevit-small',
         {
           progress_callback: (progress) => {
-            console.log(`Loading model: ${Math.round(progress.progress * 100)}%`);
+            console.log(`Loading model: ${Math.round(progress.progress)}%`);
           }
         }
       );
@@ -37,13 +37,47 @@ const PredictionHandler = ({
     }
   };
 
-  const dataURLToImage = async (dataUrl) => {
+  const processImage = async (dataUrl) => {
+    // Remove the data URL prefix to get just the base64 data
+    const base64Data = dataUrl.split(',')[1];
+    
+    // Convert base64 to binary
+    const binaryString = window.atob(base64Data);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    // Create blob from binary data
+    const blob = new Blob([bytes], { type: 'image/png' });
+
+    // Convert blob to image
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(blob);
+    
     return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
+      img.onload = () => {
+        // Create a canvas to potentially resize/normalize the image
+        const canvas = document.createElement('canvas');
+        canvas.width = 224;  // Standard input size for many vision models
+        canvas.height = 224;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to blob with specific format
+        canvas.toBlob((processedBlob) => {
+          resolve(processedBlob);
+        }, 'image/png');
+        
+        // Clean up
+        URL.revokeObjectURL(img.src);
+      };
       img.onerror = reject;
-      img.src = dataUrl;
     });
   };
 
@@ -62,26 +96,21 @@ const PredictionHandler = ({
     setError(null);
 
     try {
-      // Convert base64 to blob
-      const response = await fetch(imageData);
-      const blob = await response.blob();
-      
-      console.log('Processing blob:', {
-        type: blob.type,
-        size: blob.size
+      // Process the image
+      const processedBlob = await processImage(imageData);
+      console.log('Processed image blob:', {
+        type: processedBlob.type,
+        size: processedBlob.size
       });
 
       // Convert blob to array buffer
-      const arrayBuffer = await blob.arrayBuffer();
+      const arrayBuffer = await processedBlob.arrayBuffer();
+      
+      // Create a fresh Uint8Array from the array buffer
       const uint8Array = new Uint8Array(arrayBuffer);
       
-      console.log('Converted to Uint8Array:', {
-        length: uint8Array.length,
-        firstFewBytes: uint8Array.slice(0, 10)
-      });
-
-      // Run prediction with Uint8Array
-      const predictions = await classifier(uint8Array);
+      // Run prediction
+      const predictions = await classifier(uint8Array.buffer);
       console.log('Raw predictions:', predictions);
 
       // Format predictions and check for match
@@ -123,6 +152,7 @@ const PredictionHandler = ({
       setIsLoading(false);
     }
   };
+
   return (
     <div className="space-y-4">
       {isModelLoading ? (
