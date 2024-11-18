@@ -23,19 +23,19 @@ const mockUsers = [
     {
       id: 1,
       prompt: "cat",
-      difficulty: "Easy",
+      difficulty: "EASY",
       active: true
     },
     {
       id: 2,
       prompt: "helicopter",
-      difficulty: "Hard", // this one's tough fr
+      difficulty: "HARD", // this one's tough fr
       active: true
     },
     {
       id: 3,
       prompt: "house",
-      difficulty: "Easy",
+      difficulty: "EASY",
       active: true
     }
   ];
@@ -47,7 +47,7 @@ const mockUsers = [
       user_id: 1,
       status: "completed",
       winner: true,
-      difficulty: "Easy",
+      difficulty: "EASY",
       created_at: "2024-03-15T10:00:00Z",
       endtime: "2024-03-15T10:00:30Z",
       prompt: "cat",
@@ -119,7 +119,7 @@ const mockUsers = [
     },
   
     // grabbing a random word for the game
-    getRandomWord: async (difficulty = 'Easy') => {
+    getRandomWord: async (difficulty = 'EASY') => {
       const filteredWords = mockDataset
         .filter(word => word.difficulty === difficulty && word.active);
       const randomWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];

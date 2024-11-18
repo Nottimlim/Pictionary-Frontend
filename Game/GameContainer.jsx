@@ -1,53 +1,60 @@
+// GameContainer.jsx
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import CanvasDrawing from "./Canvas/CanvasDrawing.jsx";
 import CanvasControls from "./Canvas/CanvasControls.jsx";
 import PredictionHandler from './AIComponents/PredictionHandler.jsx'; 
 import Result from './AIComponents/Result.jsx'; 
-// import WordDisplay from "./WordDisplay";
 import Timer from "./Timer.jsx";
-import { generateWord } from '../src/services/wordGeneration.js'; // Our Groq service for word generation
+import { generateWord } from '../src/services/wordGeneration.js'; 
 import mockAPI from "../src/services/mockData.js";
 
 const TIMER_DURATION = 20; // 20 seconds
 
 const GameContainer = () => { 
+  const [isLoading, setIsLoading] = useState(true);
   // State for drawing settings
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [strokeColor, setStrokeColor] = useState("#000000");
   const [bgColor, setBgColor] = useState("#ffffff");
 
   // Game state
-  const [selectedWord, setSelectedWord] = useState("");
-  const [gameState, setGameState] = useState("initial"); // initial, playing, timeUp
+  const [selectedWord, setSelectedWord] = useState(null);
+  const [gameState, setGameState] = useState("initial");
   const [result, setResult] = useState(null);
-  const [gameId, setGameId] = useState(null); // store game ID
-  const [imageData, setImageData] = useState(null); // store drawing data
+  const [gameId, setGameId] = useState(null);
+  const [imageData, setImageData] = useState(null);
+  const [error, setError] = useState(null);
 
-  // ref to access the canvas methods - TL
   const canvasRef = useRef(null);
 
-  // Initialize game with AI word and session
+  // Initialize game
   useEffect(() => {
     const initializeGame = async () => {
       try {
-        // Get AI-generated word
-        const word = await generateWord('EASY');
-        setSelectedWord(word);
-
-        // Create game session
-        const newGame = await mockAPI.createGame(1, "Easy", word);
-        setGameId(newGame.game.id);
+        setIsLoading(true);
+        setError(null);
+        
+        const selectedWord = generateWord('EASY');
+        setSelectedWord(selectedWord);
+  
+        const gameSession = await mockAPI.createGame(1, "EASY", selectedWord?.prompt);
+        if (gameSession && gameSession.game) {
+          setGameId(gameSession.game.id);
+          console.log('Game initialized:', { word: selectedWord?.prompt, gameId: gameSession.game.id });
+        } else {
+          throw new Error('Failed to initialize game session');
+        }
       } catch (err) {
         console.error('Error initializing game:', err);
-        // Use fallback word if AI generation fails
-        setSelectedWord('cat');
+        setError('Failed to initialize game. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     };
-
+  
     initializeGame();
   }, []);
 
-  // Game state handlers
   const handleStartDrawing = () => {
     setGameState("playing");
   };
@@ -55,10 +62,13 @@ const GameContainer = () => {
   const handleTimeUp = useCallback(async () => {
     setGameState("timeUp");
 
-
     if (gameId && imageData) {
       try {
-        await mockAPI.submitDrawing(gameId, imageData);
+        await mockAPI.submitDrawing(gameId, {
+          game_id: gameId,
+          art: imageData 
+        });
+        console.log('Drawing submitted for game:', gameId);
       } catch (err) {
         console.error('Error submitting drawing:', err);
       }
@@ -75,31 +85,62 @@ const GameContainer = () => {
 
   const handlePlayAgain = async () => {
     try {
-      // Generate new word 
-      const word = await generateWord('EASY');
-      setSelectedWord(word);
-
-      // Create new game session
-      const newGame = await mockAPI.createGame(1, "Easy", word);
-      setGameId(newGame.game.id);
-
-      // Reset game state
+      setIsLoading(true);
+      setError(null);
+      
+      const newSelectedWord = generateWord('EASY');
+      setSelectedWord(newSelectedWord);
+  
+      const gameSession = await mockAPI.createGame(1, "EASY", newSelectedWord?.prompt);
+      setGameId(gameSession.game.id);
+  
       setGameState("initial");
       setResult(null);
       setImageData(null);
       if (canvasRef.current) {
         canvasRef.current.clearCanvas();
       }
+      
+      console.log('New game started:', { word: newSelectedWord?.prompt, gameId: gameSession.game.id });
     } catch (err) {
-      console.error('Error resetting game:', err);
-      setSelectedWord('cat'); // Fallback
+      console.error('Error starting new game:', err);
+      setError('Failed to start new game');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent">
+          <span className="sr-only">Loading...</span>
+        </div>
+        <p className="text-gray-600">Loading game...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center p-4 bg-red-50 text-red-600 rounded-lg">
+        <p>{error}</p>
+        <button 
+          onClick={handlePlayAgain}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  if (!selectedWord) {
+    return null;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* word display */}
       {gameState === "initial" && (
         <div className="retroContainer">
           <div className="retroHeader">
@@ -107,7 +148,7 @@ const GameContainer = () => {
           </div>
           <div className="bg-white p-6 text-center">
             <h2 className="text-2xl font-bold text-eerie-black mb-4">
-              Draw: {selectedWord}
+              Draw: {selectedWord?.prompt}
             </h2>
             <button onClick={handleStartDrawing} className="retroButton">
               Start Drawing
@@ -116,7 +157,6 @@ const GameContainer = () => {
         </div>
       )}
 
-      {/* main game interface */}
       {gameState !== "initial" && (
         <div className="max-w-4xl mx-auto">
           <div className="retroContainer mb-4">
@@ -131,7 +171,7 @@ const GameContainer = () => {
                   gameState={gameState}
                 />
                 <div className="text-lg font-semibold text-eerie-black text-center border-t border-eerie-black-300 pt-4">
-                  Draw: {selectedWord}
+                  Draw: {selectedWord?.prompt}
                 </div>
               </div>
             </div>
@@ -143,7 +183,7 @@ const GameContainer = () => {
             </div>
             <div className="bg-white p-4">
               <CanvasControls
-                onClearCanvas={() => canvasRef.current.clearCanvas()}
+                onClearCanvas={() => canvasRef.current?.clearCanvas()}
               />
 
               <div className="flex gap-4 items-center">
@@ -190,6 +230,7 @@ const GameContainer = () => {
               </div>
             </div>
           </div>
+
           <div className="retroContainer mb-4">
             <div className="retroHeader">
               <h2 className="text-lg font-bold">Canvas</h2>
@@ -201,39 +242,43 @@ const GameContainer = () => {
                 strokeColor={strokeColor}
                 bgColor={bgColor}
                 disabled={gameState === "timeUp"}
+                onImageUpdate={handleImageUpdate}
               />
-            </div>
-          </div>
-
-          {/* results modal */}
-          {gameState === "timeUp" && (
-            <div className="retroContainer">
-              <div className="retroHeader">
-                <h2 className="text-lg font-bold">Results</h2>
-              </div>
-              <div className="bg-white p-6">
+              <div className="mt-4">
                 <PredictionHandler
                   imageData={imageData}
                   selectedWord={selectedWord}
                   onPredictionComplete={handlePredictionComplete}
                 />
-                
                 {result && (
-                  <>
+                  <div className="mt-4">
                     <Result {...result} />
                     <div className="text-center mt-6">
                       <button onClick={handlePlayAgain} className="retroButton">
                         Play Again
                       </button>
                     </div>
-                  </>
+                  </div>
                 )}
+              </div>
             </div>
+          </div>
+
+          {gameState === "timeUp" && !result && (
+            <div className="retroContainer">
+              <div className="retroHeader">
+                <h2 className="text-lg font-bold">Time's Up!</h2>
+              </div>
+              <div className="bg-white p-6 text-center">
+                <button onClick={handlePlayAgain} className="retroButton">
+                  Play Again
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
-    )}
-  </div>
   );
 };
 
