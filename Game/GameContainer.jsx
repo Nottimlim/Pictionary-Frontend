@@ -35,22 +35,22 @@ const GameContainer = () => {
     try {
       setIsLoading(true);
       setError(null);
-  
+
       // Get AI-generated word with new difficulty
       const word = await generateWord(newDifficulty);
       setSelectedWord(word);
-  
+
       // Create game session with new difficulty
       const newGame = await mockAPI.createGame(1, newDifficulty, word?.prompt);
       setGameId(newGame.game.id);
-  
+
       // Set game state to initial to show the word prompt modal
       setGameState("initial");
-      
+
       // Reset other states
       setResult(null);
       setImageData(null);
-  
+
       // Clear canvas
       if (canvasRef.current) {
         canvasRef.current.clearCanvas();
@@ -66,7 +66,6 @@ const GameContainer = () => {
       setIsLoading(false);
     }
   };
-  
 
   useEffect(() => {
     initializeGame();
@@ -87,25 +86,53 @@ const GameContainer = () => {
             winner: Math.random() > 0.5,
             // Add other properties as needed
           };
+          console.log("Check Drawing Result:", mockResult);
+          console.log("Current Word:", selectedWord?.prompt);
+          console.log("Current Difficulty:", difficulty);
           setResult(mockResult);
         }, 1000);
         return "timeUp";
       }
       return prevState;
     });
-  }, []);
+  }, [selectedWord, difficulty]);
 
   const handleDifficultyChange = async (newDifficulty) => {
     setDifficulty(newDifficulty);
     await initializeGame(newDifficulty);
   };
 
-  const handleImageUpdate = useCallback((newImageData) => {
-    setImageData(newImageData);
-  }, []);
+  const handleImageUpdate = useCallback(
+    (newImageData) => {
+      const imageInfo = {
+        timestamp: new Date().toISOString(),
+        word: selectedWord?.prompt,
+        difficulty: difficulty,
+        gameState: gameState,
+        imageStats: {
+          format: "base64",
+          length: newImageData?.length,
+          preview: newImageData?.substring(0, 50) + "...", // Show just the start of the data
+        },
+      };
+      console.log("Canvas Image Updated:", JSON.stringify(imageInfo, null, 2));
+      setImageData(newImageData);
+    },
+    [selectedWord, difficulty, gameState]
+  );
 
   const handlePredictionComplete = (predictionResult) => {
-    console.log("Prediction complete:", predictionResult); // Debug log
+    const resultInfo = {
+      timestamp: new Date().toISOString(),
+      gameState: {
+        word: selectedWord?.prompt,
+        difficulty: difficulty,
+        currentState: gameState,
+      },
+      prediction: predictionResult,
+      imageDataPresent: !!imageData,
+    };
+    console.log("Prediction Results:", JSON.stringify(resultInfo, null, 2));
     setResult(predictionResult);
   };
 
@@ -295,7 +322,27 @@ const GameContainer = () => {
                   Draw your word and the AI will try to guess it...
                 </p>
                 <button
-                  onClick={handleTimeUp}
+                  onClick={() => {
+                    const drawingInfo = {
+                      timestamp: new Date().toISOString(),
+                      gameState: {
+                        word: selectedWord?.prompt,
+                        difficulty: difficulty,
+                        currentState: gameState,
+                      },
+                      imageData: {
+                        preview:
+                          canvasRef.current?.getImageData()?.substring(0, 50) +
+                          "...",
+                        fullLength: canvasRef.current?.getImageData()?.length,
+                      },
+                    };
+                    console.log(
+                      "Check Drawing Triggered:",
+                      JSON.stringify(drawingInfo, null, 2)
+                    );
+                    handleTimeUp();
+                  }}
                   className="retroButton mt-auto hover:bg-indian-red-400"
                 >
                   Check Drawing
