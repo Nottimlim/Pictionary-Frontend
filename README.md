@@ -147,6 +147,18 @@ As a user (AAU):
 - Fixed modal centering and overlay behavior
 - Added proper text overflow handling in AI panel
 - Implemented consistent sizing across all game states
+- Enhanced canvas drawing system:
+  - Implemented high-resolution drawing (2.05x scaling)
+  - Added proper coordinate mapping for accurate cursor tracking
+  - Fixed canvas scaling issues for better drawing experience
+  - Optimized canvas performance with proper scaling
+  - Added proper handling for window resizing
+- Improved game mechanics:
+  - Added manual drawing submission option
+  - Enhanced timer integration with game states
+  - Improved state management for game flow
+  - Added proper modal transitions
+  - Enhanced result display system
 - Implemented authentication flow with Login and Register components
 - Added route protection and navigation
 - Created custom form styling for authentication
@@ -162,7 +174,6 @@ As a user (AAU):
 - Added clean game reset functionality
 - Implemented proper game state management
 - Enhanced UI responsiveness for drawing tools
-- Improved canvas container scaling
 - Updated game flow with proper word cycling
 - Styled components to match 90s software aesthetic
 - Organized game interface into logical sections

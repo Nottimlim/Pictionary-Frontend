@@ -51,20 +51,9 @@ const GameContainer = () => {
     setGameState("playing");
   };
 
-  const handleTimeUp = useCallback(async () => {
+  const handleTimeUp = useCallback(() => {
     setGameState("timeUp");
-    if (gameId && imageData) {
-      try {
-        const gameResult = await mockAPI.submitDrawing(gameId, imageData);
-        setResult(gameResult.isCorrect ? { winner: true } : { winner: false });
-      } catch (error) {
-        console.error("Error submitting drawing:", error);
-        // Fallback random result
-        const randomResult = Math.random() > 0.5;
-        setResult(randomResult ? { winner: true } : { winner: false });
-      }
-    }
-  }, [gameId, imageData]);
+  }, []);
 
   const handleImageUpdate = useCallback((newImageData) => {
     setImageData(newImageData);
@@ -97,7 +86,7 @@ const GameContainer = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex h-screen">
+    <div className="fixed inset-0 flex h-screen overflow-hidden">
       {/* Left Toolbar */}
       <div className="retroContainer w-8 flex flex-col h-full rounded-none min-w-[2rem] max-w-[2rem] flex-shrink-0">
         {" "}
@@ -161,7 +150,9 @@ const GameContainer = () => {
       </div>
 
       {/* Main Canvas Area */}
-      <div className="flex-1 flex flex-col h-full p-4">
+      <div className="flex-1 flex flex-col h-full p-4 overflow-hidden">
+        {" "}
+        {/* Added overflow-hidden */}
         {/* Timer Bar */}
         <div className="retroContainer mb-4 rounded-none">
           <div className="retroHeader">
@@ -177,11 +168,10 @@ const GameContainer = () => {
             />
           </div>
         </div>
-
         {/* Canvas Container */}
-        <div className="retroContainer flex-1 rounded-none">
-          <div className="h-full w-full p-2">
-            <CanvasDrawing
+        <div className="retroContainer flex-1 rounded-none overflow-hidden">
+        <div className="h-full w-full p-2 overflow-hidden">
+        <CanvasDrawing
               ref={canvasRef}
               strokeWidth={strokeWidth}
               strokeColor={strokeColor}
@@ -193,23 +183,35 @@ const GameContainer = () => {
       </div>
 
       {/* Right Panel */}
-      <div className="retroContainer w-64 h-full rounded-none min-w-[16rem] max-w-[16rem] flex-shrink-0">
+      <div className="retroContainer w-64 h-full rounded-none min-w-[16rem] max-w-[16rem] flex-shrink-0 overflow-hidden">
         <div className="retroHeader">
           <span className="font-bold">AI Guesses</span>
         </div>
         <div className="p-4 overflow-hidden h-[calc(100%-2rem)]">
-          <div className="w-full h-full overflow-y-auto">
+          <div className="w-full h-full overflow-y-auto flex flex-col">
             {gameState === "playing" ? (
-              <p className="text-sm text-eerie-black-600 break-words">
-                Draw your word and the AI will try to guess it...
-              </p>
+              <>
+                {/* Helper text during gameplay */}
+                <p className="text-sm text-eerie-black-600 break-words mb-4">
+                  Draw your word and the AI will try to guess it...
+                </p>
+                {/* Early submission button*/}
+                <button
+                  onClick={handleTimeUp}
+                  className="retroButton mt-auto hover:bg-indian-red-400"
+                >
+                  Check Drawing
+                </button>
+              </>
             ) : gameState === "timeUp" ? (
+              // Shows prediction handler after submission or time up
               <PredictionHandler
                 imageData={imageData}
                 selectedWord={selectedWord}
                 onPredictionComplete={handlePredictionComplete}
               />
             ) : (
+              // Default state message
               <p className="text-sm text-eerie-black-600 break-words">
                 Draw your word and the AI will try to guess it...
               </p>
