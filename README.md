@@ -82,6 +82,16 @@ As a user (AAU):
 - id (Integer, PK)
 - game_id (FK)
 - art (JSON)
+  ```json
+  {
+    "imageData": "data:image/png;base64,...",
+    "metadata": {
+      "format": "png",
+      "size": "129682",
+      "word": "computer",
+      "difficulty": "EASY"
+    }
+  }
 
 ## API Routes
 ### Game Routes
@@ -113,26 +123,101 @@ As a user (AAU):
 4. Game Loop and AI Integration: Once drawing is working, integrate the AI components and finalize the game loop, including submitting drawings and receiving results.
 
 ## Current Development Status
-- Basic drawing functionality implemented
-- Canvas drawing controls and responsive sizing implemented
-- Retro UI styling applied (90s Photoshop-inspired design)
+- Basic drawing functionality implemented and optimized
+- Canvas drawing controls with enhanced resolution (4x scaling)
+- Retro UI styling with improved responsive behavior
 - Mock game setup and results handling in place
 - Authentication components created (Login/Register)
 - Game interface organized into distinct sections:
-  - Game Status (timer and word display)
-  - Drawing Tools (retro-styled toolbar)
-  - Canvas with improved scaling
-  - Results Display
-- Implemented retro-inspired toolbar design
-- Enhanced canvas drawing experience
-- Added proper game state cycling
-- Improved modal system for game flow
+  - Game Status (timer and word display with error handling)
+  - Drawing Tools (compact retro-styled toolbar with optimized controls)
+  - Canvas with improved scaling and coordinate mapping
+  - Results Display with consistent modal behavior
+  - AI Predictions panel with overflow handling
+- Implemented retro-inspired toolbar design with fixed sizing
+- Enhanced canvas drawing experience with proper cursor alignment
+- Added robust game state management system
+- Improved modal system for game flow with proper transitions
+- Fixed panel sizing inconsistencies and overflow issues
 - Frontend development in progress (Timothy)
 - AI component being handled by Norman
 - Backend implementation planned
-- User interface and game mechanics being prioritized
+- User interface and game mechanics optimized
 
 ## Recent Updates
+
+Latest Changes (March 18, 2024):
+- Added Difficulty System:
+  - Implemented difficulty selector with EASY, MEDIUM, HARD options
+  - Added dynamic word generation based on difficulty level
+  - Integrated difficulty changes with game reset
+  - Enhanced game flow to handle difficulty changes
+  - Added seamless difficulty switching during gameplay
+- Enhanced Canvas System:
+  - Optimized canvas resolution with 4x scaling for better image quality
+  - Fixed cursor-to-drawing alignment issues for accurate drawing experience
+  - Implemented proper coordinate scaling for high-resolution drawing
+  - Added window resize handling with canvas state preservation
+
+- Improved Game Flow:
+  - Enhanced timer and game state management
+  - Added loading and error states for better user feedback
+  - Implemented fallback word generation system
+  - Fixed modal behavior for consistent user experience
+
+- Auth:
+  - Registeration redirect to game
+
+- Drawing Tools Improvements:
+  - Changed default brush size to start at maximum (20)
+  - Added brush size slider with reverse direction for intuitive control
+  - Optimized drawing tool controls for better responsiveness
+  - Enhanced clear canvas functionality
+
+- Bug Fixes and Optimizations:
+  - Fixed results modal timing and display issues
+  - Improved state management during game transitions
+  - Enhanced error handling for game initialization
+  - Fixed play again functionality and canvas reset
+  - Resolved timer state update conflicts
+  - Implemented Authentication System:
+  - Added protected route functionality for game access
+  - Integrated mock authentication service
+  - Set up localStorage token management
+  - Added auth state persistence
+  - Enhanced login flow with proper redirects
+
+- Improved Route Management:
+  - Fixed router configuration
+  - Added path memory for better UX
+  - Streamlined app component structure
+  - Enhanced navigation flow and component organization
+
+Previous Updates:
+- Fixed toolbar sizing consistency across all game states
+- Improved right panel structure with proper overflow handling
+- Added static dimensions to prevent content-based resizing
+- Optimized toolbar and icon sizes to match classic software design
+- Enhanced modal positioning and overlay behavior
+- Implemented proper scroll handling for AI predictions
+- Added fixed-width constraints for consistent panel sizing
+- Improved responsive layout stability
+- Enhanced game interface organization
+- Fixed modal centering and overlay behavior
+- Added proper text overflow handling in AI panel
+- Implemented consistent sizing across all game states
+- Enhanced canvas drawing system:
+  - Implemented high-resolution drawing (2.05x scaling)
+  - Added proper coordinate mapping for accurate cursor tracking
+  - Fixed canvas scaling issues for better drawing experience
+  - Optimized canvas performance with proper scaling
+  - Added proper handling for window resizing
+- Improved game mechanics:
+  - Added manual drawing submission option
+  - Enhanced timer integration with game states
+  - Improved state management for game flow
+  - Added proper modal transitions
+  - Enhanced result display system
 - Implemented authentication flow with Login and Register components
 - Added route protection and navigation
 - Created custom form styling for authentication
@@ -148,23 +233,28 @@ As a user (AAU):
 - Added clean game reset functionality
 - Implemented proper game state management
 - Enhanced UI responsiveness for drawing tools
-- Improved canvas container scaling
 - Updated game flow with proper word cycling
 - Styled components to match 90s software aesthetic
 - Organized game interface into logical sections
 - Added proper spacing and layout for game elements
 - Established consistent styling patterns using Tailwind CSS
 
+Current Focus:
+- Fine-tuning AI prediction integration
+- Enhancing game state management
+- Improving error handling and recovery
+- Optimizing canvas performance
+
 ## Design System
 ### UI Components
-- Retro-style containers with headers
+- Retro-style containers with headers and fixed dimensions
 - Classic button styling
 - Progress bar for timer
-- Organized tool panels
-- Modal-style results display
+- Compact tool panels with consistent sizing
+- Modal-style results display with proper centering
 - Form inputs with retro styling
 - Authentication forms with consistent design
-
+- Fixed-width panels with overflow handling
 ### Color Palette
 - Using custom theme colors:
   - Vanilla (background and containers)
