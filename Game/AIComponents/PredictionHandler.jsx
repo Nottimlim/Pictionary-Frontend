@@ -1,59 +1,106 @@
-import React, { useState, useEffect } from 'react';
-import { pipeline } from '@huggingface/transformers';
+import React, { useState } from "react";
+import axios from 'axios';
 
-const PredictionHandler = ({ 
-  imageData, 
-  selectedWord, 
-  onPredictionComplete 
-}) => {
+const PredictionHandler = ({ imageData, selectedWord, onPredictionComplete }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [classifier, setClassifier] = useState(null);
-  const [isModelLoading, setIsModelLoading] = useState(true);
 
-  useEffect(() => {
-    initializeModel();
-  }, []);
-
-  const initializeModel = async () => {
-    try {
-      setIsModelLoading(true);
-      const pipe = await pipeline(
-        'image-classification',
-        'Xenova/quickdraw-mobilevit-small',
-        {
-          progress_callback: (progress) => {
-            console.log(`Loading model: ${Math.round(progress.progress)}%`);
-          }
-        }
-      );
-      setClassifier(pipe);
-      setError(null);
-    } catch (err) {
-      console.error('Error loading model:', err);
-      setError('Failed to load the recognition model. Please refresh the page.');
-    } finally {
-      setIsModelLoading(false);
-    }
+  const convertImageToBase64 = async (imageBlob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]); // Remove data URL prefix
+      reader.onerror = reject;
+      reader.readAsDataURL(imageBlob);
+    });
   };
 
-  const createImageFromBase64 = (base64String) => {
+  const preprocessImage = async (base64String) => {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error('Failed to load image'));
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 224;
+          canvas.height = 224;
+          const ctx = canvas.getContext('2d');
+
+          // White background
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Center and scale image
+          const scale = Math.min(
+            canvas.width / img.width,
+            canvas.height / img.height
+          ) * 0.8;
+
+          const scaledWidth = img.width * scale;
+          const scaledHeight = img.height * scale;
+          const x = (canvas.width - scaledWidth) / 2;
+          const y = (canvas.height - scaledHeight) / 2;
+          
+          ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+
+          canvas.toBlob((blob) => {
+            resolve(blob);
+          }, 'image/jpeg', 0.95);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      img.onerror = reject;
       img.src = base64String;
     });
   };
 
+  const predictWithGroq = async (base64Image) => {
+    const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+    
+    try {
+      console.log("Sending request to Groq API...");
+      
+      const response = await axios({
+        method: 'post',
+        url: 'https://api.groq.com/v1/vision/descriptions',
+        headers: {
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        data: {
+          model: "llama-3.2-11b-vision-preview",
+          query: {
+            image: base64Image,
+            prompt: "You are an expert in identifying doodle images. What does this doodle represent? Respond with a single word.",
+            format: "image/jpeg"
+          },
+          temperature: 0.1,
+          max_tokens: 50
+        }
+      });
+
+      console.log("Groq API Response:", response.data);
+      
+      // Extract the single word from the response
+      const prediction = response.data.description
+        .toLowerCase()
+        .trim()
+        .split(/\s+/)[0]; // Take the first word only
+        
+      return prediction;
+    } catch (error) {
+      console.error('Groq API Error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+        headers: error.response?.headers
+      });
+      throw error;
+    }
+  };
+
   const handlePredict = async () => {
     if (!imageData) {
-      setError('No drawing to analyze');
-      return;
-    }
-
-    if (!classifier) {
-      setError('Model not ready. Please wait or refresh the page.');
+      setError("No drawing to analyze");
       return;
     }
 
@@ -61,58 +108,48 @@ const PredictionHandler = ({
     setError(null);
 
     try {
-      console.log('Starting prediction with image:', {
-        dataLength: imageData.length,
-        isBase64: imageData.startsWith('data:image/png;base64,'),
-      });
-
-      // Convert base64 to Image object
-      const img = await createImageFromBase64(imageData);
+      console.log("Starting prediction process...");
       
-      console.log('Processing image:', {
-        width: img.width,
-        height: img.height,
-        type: 'HTMLImageElement'
-      });
+      // Preprocess image
+      const processedImageBlob = await preprocessImage(imageData);
+      console.log("Image preprocessed successfully");
 
-      // Run prediction using the pipeline's built-in normalization
-      const predictions = await classifier(img);
-      console.log('Raw predictions:', predictions);
+      // Convert to base64
+      const base64Image = await convertImageToBase64(processedImageBlob);
+      console.log("Image converted to base64");
+      
+      // Get prediction
+      const prediction = await predictWithGroq(base64Image);
+      console.log("Received prediction:", prediction);
 
-      const formattedPredictions = predictions.map(pred => ({
-        label: pred.label.replace(/_/g, ' ').toLowerCase(),
-        score: pred.score
-      }));
+      // Check for match
+      const matchResult = prediction.includes(selectedWord.toLowerCase());
 
-      const matchResult = formattedPredictions.some(pred => 
-        pred.score > 0.3 && 
-        pred.label.includes(selectedWord.toLowerCase())
-      );
-
-      const topPrediction = formattedPredictions[0];
+      // Set confidence
+      const confidence = matchResult ? 85 : 60;
 
       const result = {
-        prediction: topPrediction.label,
+        prediction: prediction,
         winner: matchResult,
-        confidence: `${Math.round(topPrediction.score * 100)}`,
-        allPredictions: formattedPredictions,
+        confidence: confidence.toString(),
+        allPredictions: [{ label: prediction, score: confidence / 100 }],
         selectedWord: selectedWord,
-        message: matchResult 
-          ? `This appears to be a ${topPrediction.label}, drawn with ${Math.round(topPrediction.score * 100)}% clarity.`
-          : `I see what appears to be a ${topPrediction.label}, though I was expecting a ${selectedWord}.`
+        message: matchResult
+          ? `This appears to be a ${prediction}, drawn clearly.`
+          : `I see what appears to be a ${prediction}, though I was expecting a ${selectedWord}.`
       };
 
-      console.log('Final result:', result);
+      console.log("Final result:", result);
       onPredictionComplete(result);
-
     } catch (err) {
-      console.error('Prediction error:', err);
-      console.error('Error details:', {
+      console.error("Prediction error:", err);
+      console.error("Error details:", {
         name: err.name,
         message: err.message,
-        stack: err.stack
+        stack: err.stack,
+        response: err.response?.data
       });
-      setError('Failed to analyze the drawing. Please try again.');
+      setError("Failed to analyze the drawing. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -120,64 +157,43 @@ const PredictionHandler = ({
 
   return (
     <div className="space-y-4">
-      {isModelLoading ? (
-        <div className="text-center p-4">
-          <div className="flex items-center justify-center gap-2 text-gray-600">
+      <button
+        onClick={handlePredict}
+        disabled={isLoading}
+        className={`retroButton w-full ${
+          isLoading ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+        type="button"
+      >
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-2">
             <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-              <circle 
-                className="opacity-25" 
-                cx="12" 
-                cy="12" 
-                r="10" 
-                stroke="currentColor" 
-                strokeWidth="4" 
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
               />
-              <path 
-                className="opacity-75" 
-                fill="currentColor" 
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" 
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            <span>Loading recognition model...</span>
+            Analyzing Drawing...
           </div>
-        </div>
-      ) : (
-        <button
-          onClick={handlePredict}
-          disabled={isLoading || !classifier}
-          className={`retroButton w-full ${!classifier || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          type="button"
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle 
-                  className="opacity-25" 
-                  cx="12" 
-                  cy="12" 
-                  r="10" 
-                  stroke="currentColor" 
-                  strokeWidth="4" 
-                />
-                <path 
-                  className="opacity-75" 
-                  fill="currentColor" 
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" 
-                />
-              </svg>
-              Analyzing Drawing...
-            </div>
-          ) : (
-            'Check Drawing'
-          )}
-        </button>
-      )}
+        ) : (
+          "Check Drawing"
+        )}
+      </button>
 
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded text-red-600 text-sm">
           {error}
         </div>
-      )} 
+      )}
     </div>
   );
 };
