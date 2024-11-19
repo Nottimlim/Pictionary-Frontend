@@ -1,167 +1,118 @@
-// src/services/api.js
+import axios from 'axios';
+import { authService } from './authService.js';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
-// Helper function to handle fetch calls
-const fetchWithAuth = async (endpoint, options = {}) => {
-  const token = localStorage.getItem('token');
-  
-  const defaultHeaders = {
+const api = axios.create({
+  baseURL: 'http://localhost:8000',
+  headers: {
     'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-  };
+  },
+  withCredentials: true,
+});
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers
+api.interceptors.request.use(
+  (config) => {
+    const token = authService.getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  });
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      authService.clearAuth();
+    }
+    return Promise.reject(error);
   }
+);
 
-  return response.json();
-};
-
-// Auth endpoints
-export const authAPI = {
+export const apiService = {
+  // Auth
   register: async (userData) => {
-    return fetchWithAuth('/users/register/', {
-      method: 'POST',
-      body: JSON.stringify(userData)
-    });
+    const response = await api.post('/users/register/', userData);
+    return response.data;
   },
 
   login: async (credentials) => {
-    const response = await fetchWithAuth('/users/login/', {
-      method: 'POST',
-      body: JSON.stringify(credentials)
-    });
-    
-    if (response.token) {
-      localStorage.setItem('token', response.token);
-    }
-    
-    return response;
+    const response = await api.post('/users/login/', credentials);
+    return response.data;
   },
 
-  refreshToken: async () => {
-    return fetchWithAuth('/users/token/refresh/', {
-      method: 'POST'
-    });
-  }
-};
-
-// Game endpoints
-export const gameAPI = {
-  getDetails: async (gameId) => {
-    return fetchWithAuth(`/games/${gameId}/`);
+  verifyToken: async () => {
+    const response = await api.get('/users/token/refresh/');
+    return response.data;
   },
 
-  // Get word list
+  // Games
+  getGames: async () => {
+    const response = await api.get('/games/');
+    return response.data;
+  },
+
+  getGame: async (id) => {
+    const response = await api.get(`/games/${id}/`);
+    return response.data;
+  },
+
+  updateGame: async (id, gameData) => {
+    const response = await api.patch(`/games/${id}/`, gameData);
+    return response.data;
+  },
+
+  // Words
   getWords: async () => {
-    return fetchWithAuth('/words/');
+    const response = await api.get('/words/');
+    return response.data;
   },
 
-  // Get specific word details
-  getWordDetails: async (wordId) => {
-    return fetchWithAuth(`/words/${wordId}/`);
+  getWord: async (id) => {
+    const response = await api.get(`/words/${id}/`);
+    return response.data;
   },
 
-  // Start a new game with a specific word
-  startGame: async (wordId) => {
-    return fetchWithAuth(`/words/${wordId}/game`, {
-      method: 'POST'
-    });
-  }
-};
-
-// Mock version for development
-export const mockAPI = {
-  auth: {
-    register: async (userData) => {
-      console.log('Mock Register:', userData);
-      return {
-        id: 1,
-        username: userData.username,
-        email: userData.email
-      };
-    },
-
-    login: async (credentials) => {
-      console.log('Mock Login:', credentials);
-      return {
-        token: 'mock_token_123',
-        user: {
-          id: 1,
-          username: credentials.username
-        }
-      };
-    },
-
-    refreshToken: async () => {
-      return {
-        token: 'mock_refreshed_token_123'
-      };
-    }
+  getWordByDifficulty: async (difficulty) => {
+    const response = await api.get(`/words/?difficulty=${difficulty}`);
+    return response.data;
   },
 
-  game: {
-    getDetails: async (gameId) => {
-      return {
-        id: gameId,
-        status: 'active',
-        word: {
-          id: 1,
-          text: 'cat',
-          category: 'animals',
-          difficulty: 'easy'
-        },
-        created_at: new Date().toISOString()
-      };
-    },
+  createWord: async (wordData) => {
+    const response = await api.post('/words/', wordData);
+    return response.data;
+  },
 
-    getWords: async () => {
-      return {
-        results: [
-          { id: 1, text: 'cat', category: 'animals', difficulty: 'easy' },
-          { id: 2, text: 'dog', category: 'animals', difficulty: 'easy' },
-          // ... more words
-        ]
-      };
-    },
+  // Game Creation with Word
+  startGameWithWord: async (wordId) => {
+    const response = await api.post(`/words/${wordId}/games/`);
+    return response.data;
+  },
 
-    getWordDetails: async (wordId) => {
-      return {
-        id: wordId,
-        text: 'cat',
-        category: 'animals',
-        difficulty: 'easy',
-        games_played: 10,
-        success_rate: 75
-      };
-    },
+  // Drawings
+  getGameDrawings: async (gameId) => {
+    const response = await api.get(`/games/${gameId}/drawings/`);
+    return response.data;
+  },
 
-    startGame: async (wordId) => {
-      return {
-        game_id: Date.now(),
-        word_id: wordId,
-        status: 'active',
-        started_at: new Date().toISOString()
-      };
-    },
+  createDrawing: async (gameId, drawingData) => {
+    const response = await api.post(`/games/${gameId}/drawings/`, drawingData);
+    return response.data;
+  },
 
-    submitDrawing: async (gameId, drawingData) => {
-      return {
-        game_id: gameId,
-        status: 'completed',
-        prediction: 'cat',
-        success: true,
-        completed_at: new Date().toISOString()
-      };
-    }
+  getDrawing: async (gameId, drawingId) => {
+    const response = await api.get(`/games/${gameId}/drawings/${drawingId}/`);
+    return response.data;
+  },
+
+  updateDrawing: async (gameId, drawingId, drawingData) => {
+    const response = await api.patch(`/games/${gameId}/drawings/${drawingId}/`, drawingData);
+    return response.data;
+  },
+
+  deleteDrawing: async (gameId, drawingId) => {
+    const response = await api.delete(`/games/${gameId}/drawings/${drawingId}/`);
+    return response.data;
   }
 };
