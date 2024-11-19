@@ -163,7 +163,7 @@ const GameContainer = () => {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white">
+      <div className="fixed top-[40px] bottom-0 left-0 right-0 flex overflow-hidden">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indian-red-500 border-r-transparent"></div>
           <p className="mt-4 text-eerie-black-600">Loading game...</p>
@@ -205,7 +205,7 @@ const GameContainer = () => {
               className="w-3 h-3 flex items-center justify-center hover:bg-atomic-tangerine-200 active:bg-atomic-tangerine-300 border border-eerie-black-300"
             >
               <img
-                src="../src/image/clear.png"
+                src="/src/image/clear.png"
                 alt="Clear Canvas"
                 className="w-1.5 h-1.5"
               />
@@ -218,7 +218,7 @@ const GameContainer = () => {
               className="w-3 h-3 flex items-center justify-center hover:bg-atomic-tangerine-200 active:bg-atomic-tangerine-300 border border-eerie-black-300"
             >
               <img
-                src="../src/image/difficulty.png"
+                src="/src/image/difficulty.png"
                 alt="Difficulty"
                 className="w-1.5 h-1.5"
               />
@@ -229,7 +229,7 @@ const GameContainer = () => {
           <div className="flex flex-col items-center">
             <div className="relative w-3 h-3 overflow-hidden">
               <img
-                src="../src/image/color.png"
+                src="/src/image/color.png"
                 alt="Color"
                 className="w-1.5 h-1.5 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
               />

@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import mockAPI from '../services/mockData';
 import { authService } from '../services/authService';
 
-const Register = () => {
+const Register = ({ setShowLogin }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +17,7 @@ const Register = () => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
     // Clear error when user starts typing
     if (error) setError('');
@@ -49,7 +49,7 @@ const Register = () => {
           // Store auth data
           authService.setAuth(loginResponse.user);
           // Redirect to game
-          navigate('/game');
+          navigate('/game', { replace: true });
         }
       }
     } catch (error) {
@@ -60,8 +60,8 @@ const Register = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-vanilla-500 p-4">
-      <div className="w-full max-w-md">
+    <div className="flex justify-center items-center">
+      <div className="w-full max-w-md" id="register">
         <div className="retroContainer">
           <div className="retroHeader">
             <h2 className="text-lg font-bold">Register</h2>
@@ -129,9 +129,9 @@ const Register = () => {
                 >
                   {isLoading ? 'Creating Account...' : 'Register'}
                 </button>
-                <button 
-                  type="button" 
-                  onClick={() => navigate('/login')}
+                <button
+                  type="button"
+                  onClick={() => setShowLogin(true)}
                   className="text-eerie-black-600 hover:text-indian-red"
                   disabled={isLoading}
                 >
