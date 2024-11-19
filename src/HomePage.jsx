@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Modal from "./Auth/AuthModal";
 import Login from "./Auth/Login";
 import Register from "./Auth/Register";
@@ -45,7 +45,7 @@ const HomePage = () => {
         <div className="retroHeader">
           <h2 className="text-lg font-bold">How To Play</h2>
         </div>
-  
+
         <div className="bg-white p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {instructionSteps.map(({ step, title, description }) => (
@@ -71,7 +71,7 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
