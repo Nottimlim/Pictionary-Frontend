@@ -146,6 +146,17 @@ As a user (AAU):
 
 ## Recent Updates
 Latest Changes (March 19, 2024):
+- Backend Integration:
+  - Connected frontend to Django backend
+  - Implemented JWT authentication flow
+  - Added drawing persistence with database storage
+  - Integrated word management system
+  - Set up API error handling and recovery
+  - Added automatic drawing saves during gameplay
+  - Implemented secure session management
+  - Enhanced data synchronization between frontend and backend
+  - Added fallback system for offline functionality
+  - Optimized API calls for better performance
 - Enhanced UI Layout:
   - Fixed navbar positioning for consistent display across all pages
   - Added player name display in navbar center
@@ -285,15 +296,9 @@ Current Focus:
   - Layout components
 
 ## Next Steps
-- Complete authentication integration with backend
-- Add user session management
 - Finalize AI integration for drawing recognition
 - Enhance game loop mechanics
 - Add user account features
-- Implement backend integration
-- Add difficulty levels
 - Expand word database
 - Add game history tracking
 - Implement user statistics
-- Add error handling and loading states
-- Implement protected routes
