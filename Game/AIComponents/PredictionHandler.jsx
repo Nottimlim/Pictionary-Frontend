@@ -18,13 +18,15 @@ const PredictionHandler = ({
   const initializeModel = async () => {
     try {
       setIsModelLoading(true);
-      const pipe = await pipeline('image-classification', 'Xenova/quickdraw-mobilevit-small', {
-        progress_callback: (progress) => {
-          console.log(`Loading model: ${Math.round(progress.progress)}%`);
-        },
-        resize: 224,  // Use pipeline's built-in resize
-        normalize: true // Use pipeline's built-in normalization
-      });
+      const pipe = await pipeline(
+        'image-classification',
+        'Xenova/quickdraw-mobilevit-small',
+        {
+          progress_callback: (progress) => {
+            console.log(`Loading model: ${Math.round(progress.progress)}%`);
+          }
+        }
+      );
       setClassifier(pipe);
       setError(null);
     } catch (err) {
