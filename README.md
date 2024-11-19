@@ -145,8 +145,20 @@ As a user (AAU):
 - User interface and game mechanics optimized
 
 ## Recent Updates
+Latest Changes (March 19, 2024):
+- Enhanced UI Layout:
+  - Fixed navbar positioning for consistent display across all pages
+  - Added player name display in navbar center
+  - Improved layout hierarchy with proper component spacing
+  - Fixed content overflow issues with navbar
 
-Latest Changes (March 18, 2024):
+- Game Interface Improvements:
+  - Implemented proper spacing below navbar for game content
+  - Fixed toolbar positioning relative to navbar
+  - Enhanced modal z-indexing for proper layering
+  - Maintained canvas aspect ratio and drawing precision
+
+Previous (March 18, 2024):
 - Added Difficulty System:
   - Implemented difficulty selector with EASY, MEDIUM, HARD options
   - Added dynamic word generation based on difficulty level
