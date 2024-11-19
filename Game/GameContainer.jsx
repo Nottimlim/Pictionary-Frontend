@@ -94,29 +94,60 @@ const GameContainer = () => {
     async (newImageData) => {
       setImageData(newImageData);
       
-      // Save drawing to backend when updated
       if (gameId && newImageData) {
         try {
+          // Get existing drawings
+          const drawings = await apiService.getGameDrawings(gameId);
+          console.log('Existing drawings for game:', gameId, drawings);
+  
+          // Process the image data
+          let artData;
+          if (typeof newImageData === 'object' && newImageData.preview) {
+            artData = newImageData.preview.split(',')[1];
+          } else if (typeof newImageData === 'string') {
+            artData = newImageData.split(',')[1];
+          }
+  
+          if (!artData) {
+            console.error('Invalid image data format:', newImageData);
+            return;
+          }
+  
           const drawingData = {
-            game: gameId,  
-            art: newImageData 
+            art: artData  // Remove game field for update
           };
-          
-          console.log('Sending drawing data:', drawingData); // Debug log
-          const response = await apiService.createDrawing(gameId, drawingData);
-          console.log('Drawing saved:', response); // Debug log
+  
+          if (drawings && drawings.length > 0) {
+            // Get the most recent drawing
+            const latestDrawing = drawings[drawings.length - 1];
+            console.log('Updating latest drawing:', latestDrawing.id);
+            
+            await apiService.updateDrawing(
+              gameId, 
+              latestDrawing.id, 
+              drawingData  // Only send art data for update
+            );
+          } else {
+            console.log('Creating new drawing for game:', gameId);
+            await apiService.createDrawing(gameId, {
+              game: gameId,
+              art: artData
+            });
+          }
         } catch (error) {
-          // Log the full error details
-          console.error("Error saving drawing:", {
-            message: error.message,
-            response: error.response?.data,
-            status: error.response?.status
+          console.error("Drawing save failed:", {
+            status: error.response?.status,
+            data: error.response?.data,
+            url: error.config?.url,
+            method: error.config?.method,
+            details: JSON.stringify(error.response?.data, null, 2)
           });
         }
       }
     },
     [gameId]
   );
+  
 
   const handlePredictionComplete = async (predictionResult) => {
     setResult(predictionResult);
