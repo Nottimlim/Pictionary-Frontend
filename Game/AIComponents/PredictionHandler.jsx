@@ -23,7 +23,7 @@ const PredictionHandler = ({
         'Xenova/quickdraw-mobilevit-small',
         {
           progress_callback: (progress) => {
-            console.log(`Loading model: ${Math.round(progress.progress * 100)}%`);
+            console.log(`Loading model: ${Math.round(progress.progress)}%`);
           }
         }
       );
