@@ -1,11 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import CanvasDrawing from "./Canvas/CanvasDrawing.jsx";
-import CanvasControls from "./Canvas/CanvasControls.jsx";
 import PredictionHandler from "./AIComponents/PredictionHandler.jsx";
 import Result from "./AIComponents/Result.jsx";
 import Timer from "./Timer.jsx";
-import { generateWord } from "../src/services/wordGeneration.js";
-import mockAPI from "../src/services/mockData.js";
+import { generateWord } from "../src/services/wordService.js";
+import { apiService } from "../src/services/api.js";
 import DifficultySelector from "./DifficultySelector";
 
 const TIMER_DURATION = 20;
@@ -35,37 +34,39 @@ const GameContainer = () => {
     try {
       setIsLoading(true);
       setError(null);
-
+  
       // Get word with new difficulty
       const word = await generateWord(newDifficulty);
+      console.log('Generated word:', word); // Debug log
+  
+      if (!word || !word.id) {
+        throw new Error('Invalid word received from server');
+      }
+  
       setSelectedWord(word);
-
-      // Create game session with new difficulty
-      const newGame = await mockAPI.createGame(1, newDifficulty, word?.prompt);
-      setGameId(newGame.game.id);
-
-      // Set game state to initial to show the word prompt modal
+  
+      // Create game session with the selected word
+      console.log('Creating game with word:', word.id); // Debug log
+      const gameResponse = await apiService.startGameWithWord(word.id);
+      console.log('Game response:', gameResponse); // Debug log
+  
+      setGameId(gameResponse.id);
       setGameState("initial");
-
-      // Reset other states
       setResult(null);
       setImageData(null);
-
-      // Clear canvas
+  
       if (canvasRef.current) {
         canvasRef.current.clearCanvas();
       }
     } catch (err) {
       console.error("Error initializing game:", err);
-      // Use fallback word if AI generation fails
-      const word = await mockAPI.getRandomWord();
-      setSelectedWord(word);
-      const newGame = await mockAPI.createGame(1, newDifficulty);
-      setGameId(newGame.game.id);
+      console.error("Error details:", err.response?.data); // Log backend error details
+      setError(err.response?.data?.detail || "Failed to start game. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   useEffect(() => {
     initializeGame();
@@ -76,86 +77,82 @@ const GameContainer = () => {
   };
 
   const handleTimeUp = useCallback(() => {
-    console.log("Time up called"); // Debug log
     setGameState((prevState) => {
       if (prevState === "playing") {
         return "timeUp";
       }
       return prevState;
     });
-  }, [selectedWord, difficulty]);
+  }, []);
 
   const handleDifficultyChange = async (newDifficulty) => {
     setDifficulty(newDifficulty);
     await initializeGame(newDifficulty);
   };
+
   const handleImageUpdate = useCallback(
-    (newImageData) => {
-      const imageInfo = {
-        timestamp: new Date().toISOString(),
-        word: selectedWord?.prompt,
-        difficulty: difficulty,
-        gameState: gameState,
-        imageStats: {
-          format: "base64",
-          length: newImageData?.length,
-          preview: newImageData?.substring(0, 50) + "...", // Show just the start of the data
-        },
-      };
-      console.log("Canvas Image Updated:", JSON.stringify(imageInfo, null, 2));
+    async (newImageData) => {
       setImageData(newImageData);
+      
+      // Save drawing to backend when updated
+      if (gameId && newImageData) {
+        try {
+          const drawingData = {
+            game: gameId,  
+            art: newImageData 
+          };
+          
+          console.log('Sending drawing data:', drawingData); // Debug log
+          const response = await apiService.createDrawing(gameId, drawingData);
+          console.log('Drawing saved:', response); // Debug log
+        } catch (error) {
+          // Log the full error details
+          console.error("Error saving drawing:", {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+          });
+        }
+      }
     },
-    [selectedWord, difficulty, gameState]
+    [gameId]
   );
 
-  const handlePredictionComplete = (predictionResult) => {
-    const resultInfo = {
-      timestamp: new Date().toISOString(),
-      gameState: {
-        word: selectedWord?.prompt,
-        difficulty: difficulty,
-        currentState: gameState,
-      },
-      prediction: predictionResult,
-      imageDataPresent: !!imageData,
-    };
-    console.log("Prediction Results:", JSON.stringify(resultInfo, null, 2));
+  const handlePredictionComplete = async (predictionResult) => {
     setResult(predictionResult);
+    
+    // Update game result in backend
+    if (gameId) {
+      try {
+        await apiService.updateGame(gameId, {
+          result: predictionResult.success
+        });
+      } catch (error) {
+        console.error("Error updating game result:", error);
+      }
+    }
   };
 
   const handlePlayAgain = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      setResult(null); // Clear result first
-      setGameState("initial"); // Reset game state
-      setImageData(null); // Clear image data
+      setResult(null);
+      setGameState("initial");
+      setImageData(null);
 
-      // Get new word and create new game
-      const word = await generateWord("EASY");
-      const newGame = await mockAPI.createGame(1, "EASY", word?.prompt);
+      const word = await generateWord(difficulty);
+      const gameResponse = await apiService.startGameWithWord(word.id);
 
       setSelectedWord(word);
-      setGameId(newGame.game.id);
+      setGameId(gameResponse.id);
 
-      // Clear canvas after all states are reset and new game is created
       if (canvasRef.current) {
         canvasRef.current.clearCanvas();
       }
     } catch (error) {
       console.error("Error starting new game:", error);
       setError("Failed to start new game. Please try again.");
-
-      // Fallback to mock data if AI fails
-      try {
-        const word = await mockAPI.getRandomWord();
-        const newGame = await mockAPI.createGame(1, "EASY");
-        setSelectedWord(word);
-        setGameId(newGame.game.id);
-      } catch (fallbackError) {
-        console.error("Fallback error:", fallbackError);
-        setError("Unable to start game. Please refresh the page.");
-      }
     } finally {
       setIsLoading(false);
     }
@@ -194,7 +191,7 @@ const GameContainer = () => {
     <div className="fixed inset-x-0 top-10 bottom-0 flex overflow-hidden">
       {/* Left Toolbar */}
       <div className="retroContainer w-8 flex flex-col h-full rounded-none min-w-[2rem] max-w-[2rem] flex-shrink-0">
-      <div className="retroHeader text-center">
+        <div className="retroHeader text-center">
           <span className="text-[8px] font-bold">Tools</span>
         </div>
         <div className="flex flex-col gap-1 p-0.5">
@@ -211,7 +208,7 @@ const GameContainer = () => {
               />
             </button>
           </div>
-          {/* Diffifculty */}
+          {/* Difficulty */}
           <div className="flex flex-col items-center mb-1">
             <button
               onClick={() => setShowDifficultyModal(true)}
@@ -227,20 +224,20 @@ const GameContainer = () => {
 
           {/* Color Picker */}
           <div className="flex flex-col items-center">
-  <div className="relative w-3 h-3 overflow-hidden">
-    <img
-      src="../src/image/color.png"
-      alt="Color"
-      className="w-1.5 h-1.5 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-    />
-    <input
-      type="color"
-      value={strokeColor}
-      onChange={(e) => setStrokeColor(e.target.value)}
-      className="w-full h-full opacity-0 cursor-pointer absolute top-0 left-0"
-    />
-  </div>
-</div>
+            <div className="relative w-3 h-3 overflow-hidden">
+              <img
+                src="../src/image/color.png"
+                alt="Color"
+                className="w-1.5 h-1.5 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+              />
+              <input
+                type="color"
+                value={strokeColor}
+                onChange={(e) => setStrokeColor(e.target.value)}
+                className="w-full h-full opacity-0 cursor-pointer absolute top-0 left-0"
+              />
+            </div>
+          </div>
 
           {/* Brush size */}
           <div className="space-y-0.5">
@@ -309,27 +306,7 @@ const GameContainer = () => {
                   Draw your word and the AI will try to guess it...
                 </p>
                 <button
-                  onClick={() => {
-                    const drawingInfo = {
-                      timestamp: new Date().toISOString(),
-                      gameState: {
-                        word: selectedWord?.prompt,
-                        difficulty: difficulty,
-                        currentState: gameState,
-                      },
-                      imageData: {
-                        preview:
-                          canvasRef.current?.getImageData()?.substring(0, 50) +
-                          "...",
-                        fullLength: canvasRef.current?.getImageData()?.length,
-                      },
-                    };
-                    console.log(
-                      "Check Drawing Triggered:",
-                      JSON.stringify(drawingInfo, null, 2)
-                    );
-                    handleTimeUp();
-                  }}
+                  onClick={handleTimeUp}
                   className="retroButton mt-auto hover:bg-indian-red-400"
                 >
                   Check Drawing
@@ -342,7 +319,6 @@ const GameContainer = () => {
                   selectedWord={selectedWord?.prompt}
                   onPredictionComplete={handlePredictionComplete}
                 />
-                {/* Optional loading state while waiting for prediction */}
                 {!result && (
                   <div className="text-center mt-4">
                     <p>Analyzing your drawing...</p>
@@ -405,6 +381,7 @@ const GameContainer = () => {
           </div>
         </div>
       )}
+
       {/* Difficulty Selector Modal */}
       {showDifficultyModal && (
         <DifficultySelector
