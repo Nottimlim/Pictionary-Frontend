@@ -21,23 +21,21 @@ const App = () => {
         brandName="WHATADUUDLE GAME!"
         userName={!isHomePage ? currentUser?.username : null}
       />
-      <div className="pt-8">
-        <div className="px-4 py-8">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route
-              path="/game"
-              element={
-                <ProtectedRoute>
-                  <GameContainer />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </div>
-      </div>
+      <main className="pt-10"> {/* Changed from pt-8 and removed nested div */}
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/game"
+            element={
+              <ProtectedRoute>
+                <GameContainer />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </main>
     </div>
   );
 };

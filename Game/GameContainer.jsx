@@ -191,10 +191,10 @@ const GameContainer = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex h-screen overflow-hidden">
+    <div className="fixed inset-x-0 top-10 bottom-0 flex overflow-hidden">
       {/* Left Toolbar */}
       <div className="retroContainer w-8 flex flex-col h-full rounded-none min-w-[2rem] max-w-[2rem] flex-shrink-0">
-        <div className="retroHeader text-center">
+      <div className="retroHeader text-center">
           <span className="text-[8px] font-bold">Tools</span>
         </div>
         <div className="flex flex-col gap-1 p-0.5">
@@ -227,20 +227,20 @@ const GameContainer = () => {
 
           {/* Color Picker */}
           <div className="flex flex-col items-center">
-            <div className="relative w-3 h-3 overflow-hidden">
-              <img
-                src="/src/image/color.png"
-                alt="Color"
-                className="w-1.5 h-1.5 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-              />
-              <input
-                type="color"
-                value={strokeColor}
-                onChange={(e) => setStrokeColor(e.target.value)}
-                className="w-full h-full opacity-0 cursor-pointer absolute top-0 left-0"
-              />
-            </div>
-          </div>
+  <div className="relative w-3 h-3 overflow-hidden">
+    <img
+      src="../src/image/color.png"
+      alt="Color"
+      className="w-1.5 h-1.5 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+    />
+    <input
+      type="color"
+      value={strokeColor}
+      onChange={(e) => setStrokeColor(e.target.value)}
+      className="w-full h-full opacity-0 cursor-pointer absolute top-0 left-0"
+    />
+  </div>
+</div>
 
           {/* Brush size */}
           <div className="space-y-0.5">
