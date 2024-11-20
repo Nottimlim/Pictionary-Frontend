@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import mockAPI from '../services/mockData';
+import { apiService } from '../services/api';
 import { authService } from '../services/authService';
 
 const Register = ({ setShowLogin }) => {
@@ -19,7 +19,6 @@ const Register = ({ setShowLogin }) => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    // Clear error when user starts typing
     if (error) setError('');
   };
 
@@ -35,25 +34,24 @@ const Register = ({ setShowLogin }) => {
     }
 
     try {
-      // First register the user
-      const registerResponse = await mockAPI.register(formData);
+      // Register the user (excluding confirmPassword)
+      const { confirmPassword, ...registerData } = formData;
+      const registerResponse = await apiService.register(registerData);
       
-      if (registerResponse.success) {
-        // Then automatically log them in
-        const loginResponse = await mockAPI.login({
-          username: formData.username,
-          password: formData.password
-        });
+      // Store auth data from registration response
+      authService.setAuth({
+        user: registerResponse.user,
+        token: registerResponse.access,
+        refreshToken: registerResponse.refresh
+      });
 
-        if (loginResponse.success) {
-          // Store auth data
-          authService.setAuth(loginResponse.user);
-          // Redirect to game
-          navigate('/game', { replace: true });
-        }
-      }
+      // Redirect to game
+      navigate('/game', { replace: true });
     } catch (error) {
-      setError(error.message);
+      setError(
+        error.response?.data?.error || 
+        'Registration failed. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }

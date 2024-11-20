@@ -1,35 +1,47 @@
-// Simple auth service to work with our mock data
-const authTokenKey = 'whataduudleAuthToken';
+const accessTokenKey = 'whataduudleAccessToken';
+const refreshTokenKey = 'whataduudleRefreshToken';
 const userKey = 'whataduudleUser';
 
 export const authService = {
-  // Set auth data after successful login
-  setAuth: (user) => {
-    // In real app, this would be a JWT token
-    const mockToken = btoa(JSON.stringify({ id: user.id, username: user.username }));
-    localStorage.setItem(authTokenKey, mockToken);
+  setAuth: ({ user, token, refreshToken }) => {
+    localStorage.setItem(accessTokenKey, token);
+    localStorage.setItem(refreshTokenKey, refreshToken);
     localStorage.setItem(userKey, JSON.stringify(user));
   },
 
-  // Clear auth data on logout
   clearAuth: () => {
-    localStorage.removeItem(authTokenKey);
+    localStorage.removeItem(accessTokenKey);
+    localStorage.removeItem(refreshTokenKey);
     localStorage.removeItem(userKey);
   },
 
-  // Check if user is authenticated
   isAuthenticated: () => {
-    return !!localStorage.getItem(authTokenKey);
+    return !!localStorage.getItem(accessTokenKey);
   },
 
-  // Get current user data
   getCurrentUser: () => {
     const userStr = localStorage.getItem(userKey);
     return userStr ? JSON.parse(userStr) : null;
   },
 
-  // Get auth token
   getToken: () => {
-    return localStorage.getItem(authTokenKey);
+    return localStorage.getItem(accessTokenKey);
+  },
+
+  getRefreshToken: () => {
+    return localStorage.getItem(refreshTokenKey);
+  },
+
+  needsRefresh: () => {
+    const token = localStorage.getItem(accessTokenKey);
+    if (!token) return true;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiresIn = payload.exp * 1000 - Date.now();
+      return expiresIn < 60000;
+    } catch {
+      return true;
+    }
   }
 };
