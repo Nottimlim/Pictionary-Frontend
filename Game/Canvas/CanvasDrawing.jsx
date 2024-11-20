@@ -92,10 +92,18 @@ const CanvasDrawing = forwardRef(
     };
 
     // stop drawing when the mouse is released
+    // const stopDrawing = () => {
+    //   if (!isDrawing) return; // if we're not drawing, do nothing
+    //   contextRef.current.closePath(); // finish the current path
+    //   setIsDrawing(false); // we're done drawing
+    // };
     const stopDrawing = () => {
       if (!isDrawing) return; // if we're not drawing, do nothing
       contextRef.current.closePath(); // finish the current path
       setIsDrawing(false); // we're done drawing
+    
+      // Update image data after drawing ends
+      updateImageData();
     };
 
     // clear the canvas

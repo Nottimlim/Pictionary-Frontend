@@ -93,6 +93,7 @@ const GameContainer = () => {
 
   const handleImageUpdate = useCallback(
     async (newImageData) => {
+      console.log("New Image: ", newImageData)
       setImageData(newImageData);
       
       if (gameId && newImageData) {

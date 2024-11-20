@@ -15,6 +15,7 @@ const PredictionHandler = ({ imageData, selectedWord, onPredictionComplete }) =>
   };
 
   const preprocessImage = async (base64String) => {
+    console.log("In preprocessImage function", base64String)
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
@@ -108,10 +109,10 @@ const PredictionHandler = ({ imageData, selectedWord, onPredictionComplete }) =>
   };
 
   const handlePredict = async () => {
-    if (!imageData) {
-      setError("No drawing to analyze");
-      return;
-    }
+    // if (!imageData) {
+    //   setError("No drawing to analyze");
+    //   return;
+    // }
 
     setIsLoading(true);
     setError(null);
