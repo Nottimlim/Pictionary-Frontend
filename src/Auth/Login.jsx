@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import mockAPI from '../services/mockData';
+import { apiService } from '../services/api';
 import { authService } from '../services/authService';
 
 const Login = ({ setShowLogin }) => {
@@ -18,7 +18,6 @@ const Login = ({ setShowLogin }) => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    // Clear error when user starts typing
     if (error) setError('');
   };
 
@@ -28,19 +27,23 @@ const Login = ({ setShowLogin }) => {
     setIsLoading(true);
 
     try {
-      // Try to login with mock API
-      const response = await mockAPI.login(formData);
+      const response = await apiService.login(formData);
       
-      if (response.success) {
-        // Store auth data
-        authService.setAuth(response.user);
-        
-        // Navigate to the page they were trying to access or default to /game
-        const destinationPath = location.state?.from?.pathname || '/game';
-        navigate(destinationPath, { replace: true });
-      }
+      // Store tokens and user data
+      authService.setAuth({
+        user: response.user,
+        token: response.access,
+        refreshToken: response.refresh
+      });
+      
+      // Navigate to intended destination or game page
+      const destinationPath = location.state?.from?.pathname || '/game';
+      navigate(destinationPath, { replace: true });
     } catch (error) {
-      setError(error.message || 'Login failed. Please try again.');
+      setError(
+        error.response?.data?.error || 
+        'Login failed. Please check your credentials and try again.'
+      );
     } finally {
       setIsLoading(false);
     }

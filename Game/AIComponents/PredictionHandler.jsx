@@ -70,7 +70,7 @@ const PredictionHandler = ({ imageData, selectedWord, onPredictionComplete }) =>
           model: "llama-3.2-11b-vision-preview",
           query: {
             image: base64Image,
-            prompt: "You are an expert in identifying doodle images. What does this doodle represent? Respond with a single word.",
+            prompt: "You are an expert in identifying doodle images. What does this doodle represent?",
             format: "image/jpeg"
           },
           temperature: 0.1,

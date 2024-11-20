@@ -1,6 +1,6 @@
 // src/services/wordGeneration.js
 
-const QUICKDRAW_WORDS = [
+export const QUICKDRAW_WORDS = [
     //ANIMALS
     { prompt: 'cat', difficulty: 'EASY' },
     { prompt: 'dog', difficulty: 'EASY' },
@@ -114,7 +114,6 @@ export const generateWord = (difficulty = 'EASY') => {
     
     console.log('Generated word:', selectedWord.prompt); // For debugging
     return selectedWord;
-  };
-  
+};
   // Get available difficulties 
   export const getDifficulties = () => ['EASY', 'MEDIUM', 'HARD'];
