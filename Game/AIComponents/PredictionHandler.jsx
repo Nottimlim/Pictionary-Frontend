@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from 'axios';
+import { Groq } from 'groq-sdk';
 
 const PredictionHandler = ({ imageData, selectedWord, onPredictionComplete }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -54,45 +54,54 @@ const PredictionHandler = ({ imageData, selectedWord, onPredictionComplete }) =>
   };
 
   const predictWithGroq = async (base64Image) => {
-    const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-    
     try {
-      console.log("Sending request to Groq API...");
-      
-      const response = await axios({
-        method: 'post',
-        url: 'https://api.groq.com/v1/vision/descriptions',
-        headers: {
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        data: {
-          model: "llama-3.2-11b-vision-preview",
-          query: {
-            image: base64Image,
-            prompt: "You are an expert in identifying doodle images. What does this doodle represent?",
-            format: "image/jpeg"
-          },
-          temperature: 0.1,
-          max_tokens: 50
-        }
+      console.log("Initializing Groq client...");
+      const groq = new Groq({ 
+        apiKey: import.meta.env.VITE_GROQ_API_KEY,
+        dangerouslyAllowBrowser: true  // Add this flag for browser usage
       });
 
-      console.log("Groq API Response:", response.data);
+      console.log("Sending request to Groq API...");
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "You are an expert in identifying doodle images. What does this doodle represent? Return a single word."
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Image}`
+                }
+              }
+            ]
+          }
+        ],
+        model: "llama-3.2-11b-vision-preview",
+        temperature: 0.1,
+        // max_tokens: 250,
+        top_p: 1,
+        stream: false,
+        stop: null
+      });
+
+      console.log("Groq API Response:", chatCompletion);
       
-      // Extract the single word from the response
-      const prediction = response.data.description
+      // Extract the prediction
+      const prediction = chatCompletion.choices[0].message.content
         .toLowerCase()
         .trim()
-        .split(/\s+/)[0]; // Take the first word only
+        .split(/\s+/)[0]; // Take first word only
         
       return prediction;
     } catch (error) {
       console.error('Groq API Error:', {
-        status: error.response?.status,
-        data: error.response?.data,
+        name: error.name,
         message: error.message,
-        headers: error.response?.headers
+        details: error.response?.data
       });
       throw error;
     }
