@@ -6,6 +6,7 @@ import Timer from "./Timer.jsx";
 import { generateWord } from "../src/services/wordService.js";
 import { apiService } from "../src/services/api.js";
 import DifficultySelector from "./DifficultySelector";
+import { gameCleanupService } from "../src/services/gameCleanupService";
 
 const TIMER_DURATION = 20;
 
@@ -34,43 +35,57 @@ const GameContainer = () => {
     try {
       setIsLoading(true);
       setError(null);
-  
+
       // Get word with new difficulty
       const word = await generateWord(newDifficulty);
-      console.log('Generated word:', word); // Debug log
-  
+      console.log("Generated word:", word); // Debug log
+
       if (!word || !word.id) {
-        throw new Error('Invalid word received from server');
+        throw new Error("Invalid word received from server");
       }
-  
+
       setSelectedWord(word);
-  
+
       // Create game session with the selected word
-      console.log('Creating game with word:', word.id); // Debug log
+      console.log("Creating game with word:", word.id); // Debug log
       const gameResponse = await apiService.startGameWithWord(word.id);
-      console.log('Game response:', gameResponse); // Debug log
-  
+      console.log("Game response:", gameResponse); // Debug log
+
       setGameId(gameResponse.id);
       setGameState("initial");
       setResult(null);
       setImageData(null);
-  
+
       if (canvasRef.current) {
         canvasRef.current.clearCanvas();
       }
     } catch (err) {
       console.error("Error initializing game:", err);
       console.error("Error details:", err.response?.data); // Log backend error details
-      setError(err.response?.data?.detail || "Failed to start game. Please try again.");
+      setError(
+        err.response?.data?.detail || "Failed to start game. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
   };
-  
 
   useEffect(() => {
     initializeGame();
   }, []);
+
+  useEffect(() => {
+    if (gameId) {
+      console.log('Setting up cleanup for game:', gameId);
+      const cleanup = gameCleanupService.setupUnloadCleanup(gameId);
+      
+      return () => {
+        console.log('Component unmounting, running cleanup for game:', gameId);
+        cleanup();
+        gameCleanupService.cleanupGame(gameId);
+      };
+    }
+  }, [gameId]);
 
   const handleStartDrawing = () => {
     setGameState("playing");
@@ -86,52 +101,61 @@ const GameContainer = () => {
   }, []);
 
   const handleDifficultyChange = async (newDifficulty) => {
-    setDifficulty(newDifficulty);
-    await initializeGame(newDifficulty);
+    try {
+      // Clean up current game before starting new one
+      if (gameId) {
+        await gameCleanupService.cleanupGame(gameId);
+      }
+      setDifficulty(newDifficulty);
+      await initializeGame(newDifficulty);
+    } catch (error) {
+      console.error("Error changing difficulty:", error);
+    }
   };
+  
 
   const handleImageUpdate = useCallback(
     async (newImageData) => {
       setImageData(newImageData);
-      
+
       if (gameId && newImageData) {
         try {
           // Get existing drawings
           const drawings = await apiService.getGameDrawings(gameId);
-          console.log('Existing drawings for game:', gameId, drawings);
-  
+          console.log("Existing drawings for game:", gameId, drawings);
+
           // Process the image data
           let artData;
-          if (typeof newImageData === 'object' && newImageData.preview) {
-            artData = newImageData.preview.split(',')[1];
-          } else if (typeof newImageData === 'string') {
-            artData = newImageData.split(',')[1];
+          if (typeof newImageData === "object" && newImageData.preview) {
+            artData = newImageData.preview.split(",")[1];
+          } else if (typeof newImageData === "string") {
+            artData = newImageData.split(",")[1];
           }
-  
+
           if (!artData) {
-            console.error('Invalid image data format:', newImageData);
+            console.error("Invalid image data format:", newImageData);
             return;
           }
-  
+
           const drawingData = {
-            art: artData  // Remove game field for update
+            art: artData, // Remove game field for update
           };
-  
+
           if (drawings && drawings.length > 0) {
             // Get the most recent drawing
             const latestDrawing = drawings[drawings.length - 1];
-            console.log('Updating latest drawing:', latestDrawing.id);
-            
+            console.log("Updating latest drawing:", latestDrawing.id);
+
             await apiService.updateDrawing(
-              gameId, 
-              latestDrawing.id, 
-              drawingData  // Only send art data for update
+              gameId,
+              latestDrawing.id,
+              drawingData // Only send art data for update
             );
           } else {
-            console.log('Creating new drawing for game:', gameId);
+            console.log("Creating new drawing for game:", gameId);
             await apiService.createDrawing(gameId, {
               game: gameId,
-              art: artData
+              art: artData,
             });
           }
         } catch (error) {
@@ -140,32 +164,37 @@ const GameContainer = () => {
             data: error.response?.data,
             url: error.config?.url,
             method: error.config?.method,
-            details: JSON.stringify(error.response?.data, null, 2)
+            details: JSON.stringify(error.response?.data, null, 2),
           });
         }
       }
     },
     [gameId]
   );
-  
 
   const handlePredictionComplete = async (predictionResult) => {
-    setResult(predictionResult);
-    
-    // Update game result in backend
-    if (gameId) {
-      try {
+    try {
+      setResult(predictionResult);
+
+      if (gameId) {
+        // Update game result
         await apiService.updateGame(gameId, {
-          result: predictionResult.success
+          result: predictionResult.success,
         });
-      } catch (error) {
-        console.error("Error updating game result:", error);
+
+        // Clean up game after result is saved
+        await gameCleanupService.cleanupGame(gameId);
       }
+    } catch (error) {
+      console.error("Error handling prediction:", error);
     }
   };
 
   const handlePlayAgain = async () => {
     try {
+      // Clean up previous game
+      await gameCleanupService.cleanupGame(gameId);
+
       setIsLoading(true);
       setError(null);
       setResult(null);
