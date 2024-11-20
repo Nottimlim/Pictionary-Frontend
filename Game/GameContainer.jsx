@@ -34,39 +34,40 @@ const GameContainer = () => {
     try {
       setIsLoading(true);
       setError(null);
-  
+
       // Get word with new difficulty
       const word = await generateWord(newDifficulty);
-      console.log('Generated word:', word); // Debug log
-  
+      console.log("Generated word:", word); // Debug log
+
       if (!word || !word.id) {
-        throw new Error('Invalid word received from server');
+        throw new Error("Invalid word received from server");
       }
-  
+
       setSelectedWord(word);
-  
+
       // Create game session with the selected word
-      console.log('Creating game with word:', word.id); // Debug log
+      console.log("Creating game with word:", word.id); // Debug log
       const gameResponse = await apiService.startGameWithWord(word.id);
-      console.log('Game response:', gameResponse); // Debug log
-  
+      console.log("Game response:", gameResponse); // Debug log
+
       setGameId(gameResponse.id);
       setGameState("initial");
       setResult(null);
       setImageData(null);
-  
+
       if (canvasRef.current) {
         canvasRef.current.clearCanvas();
       }
     } catch (err) {
       console.error("Error initializing game:", err);
       console.error("Error details:", err.response?.data); // Log backend error details
-      setError(err.response?.data?.detail || "Failed to start game. Please try again.");
+      setError(
+        err.response?.data?.detail || "Failed to start game. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
   };
-  
 
   useEffect(() => {
     initializeGame();
@@ -96,11 +97,8 @@ const GameContainer = () => {
       
       if (gameId && newImageData) {
         try {
-          // Get existing drawings
-          const drawings = await apiService.getGameDrawings(gameId);
-          console.log('Existing drawings for game:', gameId, drawings);
-  
-          // Process the image data
+          console.log('Attempting to save drawing for game:', gameId);
+          
           let artData;
           if (typeof newImageData === 'object' && newImageData.preview) {
             artData = newImageData.preview.split(',')[1];
@@ -113,26 +111,32 @@ const GameContainer = () => {
             return;
           }
   
-          const drawingData = {
-            art: artData  // Remove game field for update
-          };
+          try {
+            const drawings = await apiService.getGameDrawings(gameId);
+            console.log('Existing drawings:', drawings);
   
-          if (drawings && drawings.length > 0) {
-            // Get the most recent drawing
-            const latestDrawing = drawings[drawings.length - 1];
-            console.log('Updating latest drawing:', latestDrawing.id);
-            
-            await apiService.updateDrawing(
-              gameId, 
-              latestDrawing.id, 
-              drawingData  // Only send art data for update
-            );
-          } else {
-            console.log('Creating new drawing for game:', gameId);
-            await apiService.createDrawing(gameId, {
-              game: gameId,
-              art: artData
-            });
+            if (drawings && drawings.length > 0) {
+              const latestDrawing = drawings[drawings.length - 1];
+              await apiService.updateDrawing(gameId, latestDrawing.id, {
+                art: artData
+              });
+            } else {
+              // Explicitly include game ID in the creation request
+              await apiService.createDrawing(gameId, {
+                game: gameId,
+                art: artData
+              });
+            }
+          } catch (error) {
+            if (error.response?.status === 404) {
+              // Explicitly include game ID in the creation request
+              await apiService.createDrawing(gameId, {
+                game: gameId,
+                art: artData
+              });
+            } else {
+              throw error;
+            }
           }
         } catch (error) {
           console.error("Drawing save failed:", {
@@ -140,7 +144,8 @@ const GameContainer = () => {
             data: error.response?.data,
             url: error.config?.url,
             method: error.config?.method,
-            details: JSON.stringify(error.response?.data, null, 2)
+            details: JSON.stringify(error.response?.data),
+            error: error.message
           });
         }
       }
@@ -148,15 +153,16 @@ const GameContainer = () => {
     [gameId]
   );
   
+  
 
   const handlePredictionComplete = async (predictionResult) => {
     setResult(predictionResult);
-    
+
     // Update game result in backend
     if (gameId) {
       try {
         await apiService.updateGame(gameId, {
-          result: predictionResult.success
+          result: predictionResult.success,
         });
       } catch (error) {
         console.error("Error updating game result:", error);
