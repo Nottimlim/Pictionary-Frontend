@@ -6,6 +6,20 @@
   .retroContainer {
     @apply bg-white p-0 border border-atomic-tangerine shadow-[2px_2px_4px_rgba(0,0,0,0.2)];
   }
+  .toolbarContainer {
+    @apply retroContainer w-[30px] flex flex-col h-full rounded-none flex-shrink-0;
+  }
+
+  .toolButton {
+    @apply w-[25px] h-[25px] mx-auto flex items-center justify-center 
+           hover:bg-atomic-tangerine-200 active:bg-atomic-tangerine-300 
+           border border-eerie-black-300;
+  }
+
+  .toolIcon {
+    @apply w-4 h-4;
+  }
+
 
   .retroHeader {
     @apply bg-flax text-black px-3 py-1;

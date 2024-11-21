@@ -16,7 +16,7 @@ const GameContainer = () => {
   const [error, setError] = useState(null);
 
   // State for drawing settings
-  const [strokeWidth, setStrokeWidth] = useState(20);
+  const [strokeWidth, setStrokeWidth] = useState(10);
   const [strokeColor, setStrokeColor] = useState("#000000");
 
   // Game state
@@ -76,11 +76,11 @@ const GameContainer = () => {
 
   useEffect(() => {
     if (gameId) {
-      console.log('Setting up cleanup for game:', gameId);
+      console.log("Setting up cleanup for game:", gameId);
       const cleanup = gameCleanupService.setupUnloadCleanup(gameId);
-      
+
       return () => {
-        console.log('Component unmounting, running cleanup for game:', gameId);
+        console.log("Component unmounting, running cleanup for game:", gameId);
         cleanup();
         gameCleanupService.cleanupGame(gameId);
       };
@@ -112,19 +112,16 @@ const GameContainer = () => {
       console.error("Error changing difficulty:", error);
     }
   };
-  
 
   const handleImageUpdate = useCallback(
     async (newImageData) => {
+      console.log("New Image: ", newImageData);
       setImageData(newImageData);
 
       if (gameId && newImageData) {
         try {
-          // Get existing drawings
-          const drawings = await apiService.getGameDrawings(gameId);
-          console.log("Existing drawings for game:", gameId, drawings);
+          console.log("Attempting to save drawing for game:", gameId);
 
-          // Process the image data
           let artData;
           if (typeof newImageData === "object" && newImageData.preview) {
             artData = newImageData.preview.split(",")[1];
@@ -137,26 +134,34 @@ const GameContainer = () => {
             return;
           }
 
-          const drawingData = {
-            art: artData, // Remove game field for update
-          };
+          try {
+            const drawings = await apiService.getGameDrawings(gameId);
+            console.log("Existing drawings:", drawings);
 
-          if (drawings && drawings.length > 0) {
-            // Get the most recent drawing
-            const latestDrawing = drawings[drawings.length - 1];
-            console.log("Updating latest drawing:", latestDrawing.id);
+            if (drawings && drawings.length > 0) {
+              const latestDrawing = drawings[drawings.length - 1];
+              console.log("Updating latest drawing:", latestDrawing.id);
 
-            await apiService.updateDrawing(
-              gameId,
-              latestDrawing.id,
-              drawingData // Only send art data for update
-            );
-          } else {
-            console.log("Creating new drawing for game:", gameId);
-            await apiService.createDrawing(gameId, {
-              game: gameId,
-              art: artData,
-            });
+              await apiService.updateDrawing(gameId, latestDrawing.id, {
+                art: artData,
+              });
+            } else {
+              console.log("Creating new drawing for game:", gameId);
+              await apiService.createDrawing(gameId, {
+                game: gameId,
+                art: artData,
+              });
+            }
+          } catch (error) {
+            if (error.response?.status === 404) {
+              console.log("No drawings found, creating new one");
+              await apiService.createDrawing(gameId, {
+                game: gameId,
+                art: artData,
+              });
+            } else {
+              throw error;
+            }
           }
         } catch (error) {
           console.error("Drawing save failed:", {
@@ -164,7 +169,8 @@ const GameContainer = () => {
             data: error.response?.data,
             url: error.config?.url,
             method: error.config?.method,
-            details: JSON.stringify(error.response?.data, null, 2),
+            details: JSON.stringify(error.response?.data),
+            error: error.message,
           });
         }
       }
@@ -176,14 +182,26 @@ const GameContainer = () => {
     try {
       setResult(predictionResult);
 
-      if (gameId) {
-        // Update game result
-        await apiService.updateGame(gameId, {
-          result: predictionResult.success,
-        });
+      console.log(
+        "PREDICTION RESULT",
+        predictionResult,
+        "SELECTED WORD",
+        selectedWord
+      );
 
-        // Clean up game after result is saved
-        await gameCleanupService.cleanupGame(gameId);
+      if (gameId) {
+        try {
+          // Update game result in backend using 'winner' property
+          await apiService.updateGame(gameId, {
+            result: predictionResult.winner,
+          });
+
+          // Clean up game after result is saved
+          await gameCleanupService.cleanupGame(gameId);
+        } catch (error) {
+          console.error("Error updating game result:", error);
+          throw error; // Propagate error to outer catch block
+        }
       }
     } catch (error) {
       console.error("Error handling prediction:", error);
@@ -365,26 +383,22 @@ const GameContainer = () => {
                 <p className="text-sm text-eerie-black-600 break-words mb-4">
                   Draw your word and the AI will try to guess it...
                 </p>
-                <button
-                  onClick={handleTimeUp}
-                  className="retroButton mt-auto hover:bg-indian-red-400"
-                >
-                  Check Drawing
-                </button>
-              </>
-            ) : gameState === "timeUp" ? (
-              <>
                 <PredictionHandler
                   imageData={imageData}
                   selectedWord={selectedWord?.prompt}
                   onPredictionComplete={handlePredictionComplete}
+                  onAnalyze={handleTimeUp}
+                  autoAnalyze={false}
                 />
-                {!result && (
-                  <div className="text-center mt-4">
-                    <p>Analyzing your drawing...</p>
-                  </div>
-                )}
               </>
+            ) : gameState === "timeUp" && !result ? (
+              <PredictionHandler
+                imageData={imageData}
+                selectedWord={selectedWord?.prompt}
+                onPredictionComplete={handlePredictionComplete}
+                onAnalyze={handleTimeUp}
+                autoAnalyze={true}
+              />
             ) : (
               <p className="text-sm text-eerie-black-600 break-words">
                 Draw your word and the AI will try to guess it...
