@@ -195,7 +195,7 @@ const PredictionHandler = ({ imageData, selectedWord, onPredictionComplete }) =>
             Analyzing Drawing...
           </div>
         ) : (
-          "Check Drawing"
+          "Check Drawing 2"
         )}
       </button>
 

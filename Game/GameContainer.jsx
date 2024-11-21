@@ -154,17 +154,17 @@ const GameContainer = () => {
     [gameId]
   );
   
-  
-
   const handlePredictionComplete = async (predictionResult) => {
     setResult(predictionResult);
-
+    
+    console.log("PREDICTION RESULT", predictionResult, "SELECTED WORD", selectedWord)
     // Update game result in backend
     if (gameId) {
       try {
         await apiService.updateGame(gameId, {
-          result: predictionResult.success,
+          result: predictionResult.winner
         });
+        return result
       } catch (error) {
         console.error("Error updating game result:", error);
       }
