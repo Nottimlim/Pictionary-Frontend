@@ -66,7 +66,16 @@ module.exports = {
           700: '#757575',
           800: '#a3a3a3',
           900: '#d1d1d1'
-        }
+        },
+        width: {
+          'toolbar': '30px',
+        },
+        minWidth: {
+          'toolbar': '2rem',
+        },
+        maxWidth: {
+          'toolbar': '2rem',
+        },
       }
     }
   },

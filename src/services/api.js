@@ -1,10 +1,11 @@
-import axios from 'axios';
-import { authService } from './authService.js';
+import axios from "axios";
+import { authService } from "./authService.js";
+import config from "../config/environment";
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: config.API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   withCredentials: true,
 });
@@ -31,25 +32,30 @@ api.interceptors.response.use(
 );
 
 export const apiService = {
+  getBaseURL: () => config.API_URL,
   // Auth
   register: async (userData) => {
-    const response = await api.post('/users/register/', userData);
+    const response = await api.post("/users/register/", userData);
     return response.data;
   },
 
   login: async (credentials) => {
-    const response = await api.post('/users/login/', credentials);
+    const response = await api.post("/users/login/", credentials);
+    return response.data;
+  },
+  logout: async () => {
+    const response = await api.post("/users/logout/");
     return response.data;
   },
 
   verifyToken: async () => {
-    const response = await api.get('/users/token/refresh/');
+    const response = await api.get("/users/token/refresh/");
     return response.data;
   },
 
   // Games
   getGames: async () => {
-    const response = await api.get('/games/');
+    const response = await api.get("/games/");
     return response.data;
   },
 
@@ -63,9 +69,14 @@ export const apiService = {
     return response.data;
   },
 
+  deleteGame: async (id) => {
+    const response = await api.delete(`/games/${id}/`);
+    return response.data;
+  },
+
   // Words
   getWords: async () => {
-    const response = await api.get('/words/');
+    const response = await api.get("/words/");
     return response.data;
   },
 
@@ -80,7 +91,7 @@ export const apiService = {
   },
 
   createWord: async (wordData) => {
-    const response = await api.post('/words/', wordData);
+    const response = await api.post("/words/", wordData);
     return response.data;
   },
 
@@ -107,12 +118,19 @@ export const apiService = {
   },
 
   updateDrawing: async (gameId, drawingId, drawingData) => {
-    const response = await api.patch(`/games/${gameId}/drawings/${drawingId}/`, drawingData);
+    const response = await api.patch(
+      `/games/${gameId}/drawings/${drawingId}/`,
+      drawingData
+    );
     return response.data;
   },
 
   deleteDrawing: async (gameId, drawingId) => {
-    const response = await api.delete(`/games/${gameId}/drawings/${drawingId}/`);
+    const response = await api.delete(
+      `/games/${gameId}/drawings/${drawingId}/`
+    );
     return response.data;
-  }
+  },
 };
+
+// http://127.0.0.1:8000/games/42/
