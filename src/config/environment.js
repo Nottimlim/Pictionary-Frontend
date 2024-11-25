@@ -4,7 +4,7 @@ const environment = {
   },
   production: {
     // Replace with Heroku app URL
-    API_URL: process.env.VITE_API_URL || 'https://your-heroku-app-name.herokuapp.com',
+    API_URL: process.env.VITE_API_URL || 'https://whataduudle-game-76f8c0d45ebe.herokuapp.com',
   }
 };
 
