@@ -3,7 +3,7 @@ const environment = {
     API_URL: 'http://localhost:8000',
   },
   production: {
-    API_URL: import.meta.env.VITE_API_URL || 'https://whataduudle-game-76f8c0d45ebe.herokuapp.com',
+    API_URL: import.meta.env.VITE_API_URL || 'http://whataduudle-game-76f8c0d45ebe.herokuapp.com',
   }
 };
 
