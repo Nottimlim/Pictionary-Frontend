@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">
+  <!-- Wavy Banner - front face -->
+  <path d="M80,70 
+           C150,70 200,90 300,90 
+           C400,90 450,70 520,70 
+           L540,90 
+           C450,90 400,110 300,110 
+           C200,110 150,90 60,90 
+           Z" 
+        fill="#f1e8b8" 
+        stroke="#191919" 
+        stroke-width="3"/>
+        
+  <!-- Banner shadow/3D effect -->
+  <path d="M60,90 
+           L80,110 
+           C150,110 200,130 300,130 
+           C400,130 450,110 540,110 
+           L540,90 
+           C450,90 400,110 300,110 
+           C200,110 150,90 60,90" 
+        fill="#e58f65" 
+        stroke="#191919" 
+        stroke-width="2"/>
+
+  <!-- 3D Text effect - shadow layer -->
+  <text x="303" y="103" 
+        font-family="Impact, sans-serif" 
+        font-size="32" 
+        text-anchor="middle" 
+        fill="#d05353">
+    WHATADUUDLE!
+  </text>
+  
+  <!-- 3D Text effect - main layer -->
+  <text x="300" y="100" 
+        font-family="Impact, sans-serif" 
+        font-size="32" 
+        text-anchor="middle" 
+        fill="#191919">
+    WHATADUUDLE!
+  </text>
+
+  <!-- Refined Doodles -->
+  <!-- Mouse cursor -->
+  <path d="M270,160 L290,160 L290,180 L280,180 L270,190 Z" 
+        fill="#f9e784" 
+        stroke="#191919" 
+        stroke-width="2"/>
+        
+  <!-- Coffee cup -->
+  <path d="M180,160 
+           Q180,180 200,180 
+           L195,190 L165,190 L160,180
+           Q180,180 180,160
+           M160,180 Q160,190 170,190
+           M170,160 Q180,155 190,160
+           M175,150 Q180,145 185,150
+           M180,145 Q185,140 190,145" 
+        fill="none" 
+        stroke="#191919" 
+        stroke-width="2.5"/>
+        
+  <!-- Complete pencil -->
+  <path d="M400,160 L430,160 L435,165 L430,170 L400,170 Z" 
+        fill="#f9e784" 
+        stroke="#191919" 
+        stroke-width="2"/>
+  <path d="M400,160 L390,165 L400,170" 
+        fill="#e58f65" 
+        stroke="#191919" 
+        stroke-width="2"/>
+  <path d="M430,160 L435,165 L430,170" 
+        fill="#191919"/>
+        
+  <!-- Clock with details -->
+  <circle cx="350" cy="170" r="15" 
+          fill="none" 
+          stroke="#191919" 
+          stroke-width="2.5"/>
+  <circle cx="350" cy="170" r="2" 
+          fill="#191919"/>
+  <path d="M350,170 L350,160 M350,170 L360,170" 
+        stroke="#191919" 
+        stroke-width="2.5"/>
+  
+  <!-- Paint brush -->
+  <path d="M450,160 
+           Q460,155 470,160 
+           L465,180 Q460,185 455,180 Z
+           M460,160 L460,180" 
+        fill="#d05353" 
+        stroke="#191919" 
+        stroke-width="2"/>
+  
+  <!-- Star -->
+  <path d="M220,150 L225,165 L240,165 L230,175 L235,190 L220,180 L205,190 L210,175 L200,165 L215,165 Z" 
+        fill="none" 
+        stroke="#191919" 
+        stroke-width="2.5"/>
+        
+  <!-- Decorative elements -->
+  <circle cx="440" cy="200" r="6" fill="#e58f65"/>
+  <circle cx="160" cy="150" r="6" fill="#d05353"/>
+  <circle cx="350" cy="140" r="6" fill="#f9e784"/>
+  <circle cx="250" cy="210" r="6" fill="#e58f65"/>
+  <circle cx="450" cy="180" r="6" fill="#d05353"/>
+</svg>
