@@ -1,4 +1,10 @@
 [[redirects]]
+  from = "/api/users/*"
+  to = "https://whataduudle-game-76f8c0d45ebe.herokuapp.com/users/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/*"
   to = "https://whataduudle-game-76f8c0d45ebe.herokuapp.com/:splat"
   status = 200
